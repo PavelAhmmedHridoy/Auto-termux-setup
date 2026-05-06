@@ -1,39 +1,145 @@
 #!/data/data/com.termux/files/usr/bin/bash
 
-# --- Style Colors ---
-C='\033[1;36m'; G='\033[1;32m'; Y='\033[1;33m'; R='\033[1;31m'; N='\033[0m'
+# ==============================================================================
+# 1. THE COLOR PALETTE & ASSETS
+# ==============================================================================
+R='\033[1;31m'; G='\033[1;32m'; Y='\033[1;33m'; B='\033[1;34m'
+P='\033[1;35m'; C='\033[1;36m'; W='\033[1;37m'; N='\033[0m'
+BG_B='\033[44m'; U='\033[4m'
 
-# --- 1. GLOBAL ERROR HANDLER ---
-error_handler() {
-    echo -e "\n${R}[!] CRITICAL ERROR: $1${N}" >&2
-    exit 1
+# ==============================================================================
+# 2. CORE UI COMPONENTS
+# ==============================================================================
+draw_banner() {
+    clear
+    echo -e "${C}────────────────────────────────────────────────────────────${N}"
+    echo -e "${P}  ____  _______     __   ____ _____  _  _____ _   _ ____  ${N}"
+    echo -e "${P} |  _ \| ____\ \   / /  / ___|_   _|/ \|_   _| | | / ___| ${N}"
+    echo -e "${P} | | | |  _|  \ \ / /___\___ \ | | / _ \ | | | | | \___ \ ${N}"
+    echo -e "${P} | |_| | |___  \ V /_____|__) || |/ ___ \| | | |_| |___) |${N}"
+    echo -e "${P} |____/|_____|  \_/     |____/ |_/_/   \_\_|  \___/|____/ ${N}"
+    echo -e "${C}────────────────────────────────────────────────────────────${N}"
+    echo -e "       ${BG_B}${W}  AUTO-REPAIR  ${N} ❱❱❱ ${BG_B}${W}  COMMAND: auto-termux  ${N}"
+    echo -e "${C}────────────────────────────────────────────────────────────${N}"
 }
 
-# --- 2. MODULAR FILE GENERATOR ---
-# This builds the 'files' folder and internal scripts automatically
-generate_modules() {
-    echo -e "${Y}[*] Creating local 'files' directory and modules...${N}"
-    mkdir -p ./files
+# ==============================================================================
+# 3. SYSTEM REPAIR & INSTALLATION LOGIC
+# ==============================================================================
+system_repair() {
+    echo -e "\n${Y}[!] Phase 1: Heavy System Repair & Package Sync...${N}"
+    # Structured one-line repair chain
+    apt update -y && apt full-upgrade -y && pkg install zsh git eza curl ncurses-utils -y --reinstall || {
+        echo -e "${R}!! Critical Library Mismatch Detected !!${N}"
+        dpkg --configure -a && apt install -f -y && apt full-upgrade -y
+    }
+}
 
-    # Create Frontend Module
-    cat << 'EOF' > ./files/frontend.sh
-#!/data/data/com.termux/files/usr/bin/bash
-C='\033[1;36m'; G='\033[1;32m'; Y='\033[1;33m'; N='\033[0m'
-echo -e "\n${C}>>> FRONTEND MODULE: NODEJS SETUP <<<${N}"
-pkg install nodejs -y
-echo -e "${Y}[?] Install global dev tools (live-server, prettier, typescript)? [y/n]${N}"
-read -p "Selection: " npm_choice
-if [[ "$npm_choice" =~ ^[Yy]$ ]]; then
-    npm install -g live-server prettier typescript
-    echo -e "${G}[+] Global tools installed successfully.${N}"
-fi
+setup_icons() {
+    echo -e "${Y}[!] Phase 2: Deploying Nerd-Font Glyphs...${N}"
+    mkdir -p ~/.termux
+    curl -L "https://github.com/romkatv/powerlevel10k-media/raw/master/MesloLGS%20NF%20Regular.ttf" -o ~/.termux/font.ttf
+    echo "font-size = 13" > ~/.termux/termux.properties && termux-reload-settings
+}
+
+# ==============================================================================
+# 4. DEVELOPMENT STACK MODULES
+# ==============================================================================
+install_frontend() {
+    echo -e "\n${P}⚡ FRONTEND STACK ACTIVATED${N}"
+    pkg install nodejs -y
+    read -p "$(echo -e "${C}Install global tools (live-server, prettier)? [y/n] ❱ ${N}")" npm_choice
+    [[ "$npm_choice" =~ ^[Yy]$ ]] && npm install -g live-server prettier
+}
+
+install_backend() {
+    echo -e "\n${B}⚙ BACKEND STACK ACTIVATED${N}"
+    pkg install python python-pip mariadb -y
+}
+
+# ==============================================================================
+# 5. STYLE & COMMAND REGISTRATION
+# ==============================================================================
+apply_styling() {
+    echo -e "${Y}[!] Phase 3: Launching Style Engine...${N}"
+    if [[ ! -d "$HOME/termux-style" ]]; then
+        git clone https://github.com/adi1090x/termux-style "$HOME/termux-style"
+        cd "$HOME/termux-style" && ./install
+        
+        # Trigger and Wait
+        echo -e "${G}[!] Selection Menu Opening... Cleanup starts after closing.${N}"
+        termux-style
+        
+        cd - > /dev/null
+        rm -rf "$HOME/termux-style" # Nuclear removal
+    else
+        termux-style
+    fi
+}
+
+register_command() {
+    # Move script to bin for 'auto-termux' rerun capability
+    cp "$0" "$PREFIX/bin/auto-termux"
+    chmod +x "$PREFIX/bin/auto-termux"
+}
+
+# ==============================================================================
+# 6. MAIN EXECUTION FLOW
+# ==============================================================================
+draw_banner
+
+# User Input Section
+while true; do
+    echo -e -n "${W}Enter Your Nickname ${G}❱ ${N}"; read nickname
+    [[ -n "$nickname" ]] && break
+done
+
+echo -e "\n${U}${W}CHOOSE YOUR PATH:${N}"
+echo -e "${C}1. ${G}Frontend   ${C}2. ${B}Backend   ${C}3. ${P}Fullstack${N}"
+read -p "Select Path [1-3] ❱ " choice
+
+# Start Workflow
+system_repair
+setup_icons
+
+case $choice in
+    1) install_frontend ;;
+    2) install_backend ;;
+    3) install_frontend && install_backend ;;
+esac
+
+apply_styling
+register_command
+
+# Zsh Configuration
+echo -e "${Y}[!] Phase 4: Finalizing Custom Zsh...${N}"
+mkdir -p ~/.zsh_plugins
+[[ -d ~/.zsh_plugins/zsh-syntax-highlighting ]] || git clone https://github.com/zsh-users/zsh-syntax-highlighting ~/.zsh_plugins/zsh-syntax-highlighting
+[[ -d ~/.zsh_plugins/zsh-autosuggestions ]] || git clone https://github.com/zsh-users/zsh-autosuggestions ~/.zsh_plugins/zsh-autosuggestions
+
+cat << EOF > ~/.zshrc
+export TERM="xterm-256color"
+export LC_ALL=C.UTF-8
+source ~/.zsh_plugins/zsh-autosuggestions/zsh-autosuggestions.zsh
+source ~/.zsh_plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+alias ls='eza --icons=always --group-directories-first'
+alias ll='eza -lh --icons=always --group-directories-first'
+alias auto-termux='auto-termux'
+PROMPT='%B%F{51}(%F{51}${nickname}%F{51}) %F{226}➜ %F{33}%~ %F{118}$ %f%b'
 EOF
 
-    # Create Backend Module
-    cat << 'EOF' > ./files/backend.sh
-#!/data/data/com.termux/files/usr/bin/bash
-C='\033[1;36m'; G='\033[1;32m'; Y='\033[1;33m'; N='\033[0m'
-echo -e "\n${C}>>> BACKEND MODULE: PYTHON & SQL <<<${N}"
+# ==============================================================================
+# 7. CLEANUP & HANDOVER
+# ==============================================================================
+chsh -s zsh
+echo -e "\n${G}────────────────────────────────────────────────────────────${N}"
+echo -e "       ${W}CLEANUP COMPLETE: ${R}setup.sh & termux-style REMOVED${N}"
+echo -e "       ${W}SYSTEM READY: TYPE ${C}auto-termux${W} TO RERUN${N}"
+echo -e "${G}────────────────────────────────────────────────────────────${N}"
+
+# Background self-destruct of the original file
+(sleep 2; rm -f "$0") & 
+exec zsh
 pkg install python python-pip mariadb -y
 echo -e "${G}[+] Backend environment ready.${N}"
 EOF
