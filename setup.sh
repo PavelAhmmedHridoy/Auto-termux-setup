@@ -3,6 +3,7 @@
 # ================= COLORS =================
 C='\033[1;36m'
 W='\033[1;37m'
+G='\033[1;32m'
 Y='\033[1;33m'
 R='\033[1;31m'
 N='\033[0m'
@@ -13,9 +14,9 @@ clear
 echo -e "${C}"
 cat << "EOF"
 ╔════════════════════════════════════════════╗
-║        ⚡ TERMINAL UI ENGINE v1 ⚡          ║
+║        ⚡ TERMINAL UI ENGINE v2 ⚡          ║
 ╠════════════════════════════════════════════╣
-║        ASCII • INPUT SYSTEM • MENU         ║
+║        SYSTEM UPDATE • CORE MODULE         ║
 ╚════════════════════════════════════════════╝
 EOF
 echo -e "${N}"
@@ -27,7 +28,7 @@ nickname=${nickname:-User}
 
 echo -e "\n${C}Welcome, ${nickname}! 🚀${N}"
 
-# ================= MENU (4 OPTIONS) =================
+# ================= MENU =================
 echo -e "\n${W}Select Option:${N}"
 echo -e "${C}1) Frontend Setup"
 echo -e "${C}2) Backend Setup"
@@ -35,6 +36,42 @@ echo -e "${C}3) Custom Install"
 echo -e "${C}4) Exit"
 echo -ne "\nChoice ❱ ${N}"
 read choice
+
+echo ""
+
+# ================= SYSTEM UPDATE FUNCTION =================
+system_update() {
+    echo -e "${Y}🔄 Updating packages...${N}"
+    pkg update -y
+
+    echo -e "${Y}⬆ Upgrading packages...${N}"
+    pkg upgrade -y
+
+    echo -e "${G}✔ System fully updated!${N}"
+}
+
+# ================= ACTION HANDLER =================
+case $choice in
+    1)
+        echo -e "${C}Frontend mode selected ⚡${N}"
+        system_update
+        ;;
+    2)
+        echo -e "${C}Backend mode selected ⚙${N}"
+        system_update
+        ;;
+    3)
+        echo -e "${C}Custom install mode selected 📦${N}"
+        system_update
+        ;;
+    4)
+        echo -e "${Y}Exiting... Bye ${nickname} 👋${N}"
+        exit
+        ;;
+    *)
+        echo -e "${R}Invalid choice ❌${N}"
+        ;;
+esacread choice
 
 # ================= BASIC RESPONSE =================
 echo ""
