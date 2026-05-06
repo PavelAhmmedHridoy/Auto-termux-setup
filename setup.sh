@@ -1,20 +1,16 @@
 #!/data/data/com.termux/files/usr/bin/bash
 
-# ==============================================================================
-# 1. THE COLOR PALETTE
-# ==============================================================================
+# --- 1. COLOR MATRIX ---
 R='\033[1;31m'; G='\033[1;32m'; Y='\033[1;33m'; B='\033[1;34m'
 P='\033[1;35m'; C='\033[1;36m'; W='\033[1;37m'; N='\033[0m'
 BG_B='\033[44m'; U='\033[4m'
 
-# ==============================================================================
-# 2. INTERNAL MODULES (LOGIC ONLY)
-# ==============================================================================
+# --- 2. INTERNAL FUNCTIONS ---
 install_frontend() {
     echo -e "\n${P}⚡ STARTING FRONTEND SETUP...${N}"
     pkg install nodejs -y
-    echo -e "${C}Install global tools (live-server, prettier)? [y/n]${N}"
-    read -p "❱ " npm_choice
+    echo -e -n "${C}Install global tools (live-server, prettier)? [y/n] ❱ ${N}"
+    read npm_choice
     [[ "$npm_choice" =~ ^[Yy]$ ]] && npm install -g live-server prettier
 }
 
@@ -23,11 +19,7 @@ install_backend() {
     pkg install python python-pip mariadb -y
 }
 
-# ==============================================================================
-# 3. MAIN EXECUTION FLOW
-# ==============================================================================
-
-# --- [A] BANNER & NICKNAME ---
+# --- 3. MAIN INTERFACE ---
 clear
 echo -e "${C}────────────────────────────────────────────────────────────${N}"
 echo -e "${P}  ____  _______     __   ____ _____  _  _____ _   _ ____  ${N}"
@@ -36,57 +28,64 @@ echo -e "${P} | | | |  _|  \ \ / /___\___ \ | | / _ \ | | | | | \___ \ ${N}"
 echo -e "${P} | |_| | |___  \ V /_____|__) || |/ ___ \| | | |_| |___) |${N}"
 echo -e "${P} |____/|_____|  \_/     |____/ |_/_/   \_\_|  \___/|____/ ${N}"
 echo -e "${C}────────────────────────────────────────────────────────────${N}"
+echo -e "       ${BG_B}${W}  AUTO-REPAIR  ${N} ❱❱❱ ${BG_B}${W}  COMMAND: auto-termux  ${N}"
+echo -e "${C}────────────────────────────────────────────────────────────${N}"
 
-while true; do
-    echo -e -n "${W}Enter Your Nickname ${G}❱ ${N}"
-    read nickname
-    [[ -n "$nickname" ]] && break
-done
+# Nickname Input (Single Prompt Fix)
+echo -e -n "${W}Enter Your Nickname ${G}❱ ${N}"
+read nickname
+[[ -z "$nickname" ]] && nickname="User"
 
-echo -e "\n${U}${W}CHOOSE YOUR PATH:${N}"
-echo -e "${C}1. ${G}Frontend   ${C}2. ${B}Backend   ${C}3. ${P}Fullstack${N}"
-read -p "Select Path [1-3] ❱ " choice
+# Selection Menu
+echo -e "\n${U}${W}CHOOSE YOUR DEVELOPMENT PATH:${N}"
+echo -e "${C}1.${G} Frontend ${W}| ${C}2.${B} Backend ${W}| ${C}3.${P} Fullstack${N}"
+echo -e -n "${W}Select [1-3] ❱ ${N}"
+read choice
 
-# --- [B] SYSTEM REPAIR (ONE-LINE CHAIN) ---
+# --- 4. PHASE 1: SYSTEM REPAIR ---
 echo -e "\n${Y}[!] Phase 1: Heavy System Repair & Package Sync...${N}"
+# Force sync and repair library mismatches
 apt update -y && apt full-upgrade -y && pkg install zsh git eza curl ncurses-utils -y --reinstall || {
     dpkg --configure -a && apt install -f -y && apt full-upgrade -y
 }
 
-# --- [C] ICON FONT DEPLOYMENT ---
+# --- 5. PHASE 2: ICON FONT ---
 echo -e "${Y}[!] Phase 2: Deploying Nerd-Font Glyphs...${N}"
 mkdir -p ~/.termux
 curl -L "https://github.com/romkatv/powerlevel10k-media/raw/master/MesloLGS%20NF%20Regular.ttf" -o ~/.termux/font.ttf
-echo "font-size = 13" > ~/.termux/termux.properties && termux-reload-settings
+echo "font-size = 13" > ~/.termux/termux.properties
+termux-reload-settings
 
-# --- [D] STACK EXECUTION ---
+# --- 6. PHASE 3: STACK EXECUTION ---
 case $choice in
     1) install_frontend ;;
     2) install_backend ;;
     3) install_frontend && install_backend ;;
+    *) echo -e "${Y}[!] No stack chosen, proceeding to UI...${N}" ;;
 esac
 
-# --- [E] STYLING (THE WAITING FIX) ---
-echo -e "\n${Y}[!] Phase 3: Launching Style Engine...${N}"
+# --- 7. PHASE 4: STYLING (INTERACTIVE FIX) ---
+echo -e "\n${Y}[!] Phase 4: Launching Style Engine...${N}"
 if [[ ! -d "$HOME/termux-style" ]]; then
     git clone https://github.com/adi1090x/termux-style "$HOME/termux-style"
     cd "$HOME/termux-style" && ./install
     
-    # CRITICAL FIX: Force terminal to stay interactive for the menu
-    echo -e "${G}>>> SELECT THEME NOW. SCRIPT WAITS FOR YOU...${N}"
-    exec < /dev/tty
-    termux-style
+    # FORCE INTERACTIVE INPUT
+    echo -e "${G}>>> SELECT YOUR THEME. THE SCRIPT WILL WAIT...${N}"
+    termux-style < /dev/tty
     
     cd - > /dev/null
-    rm -rf "$HOME/termux-style" # Nuclear cleanup after menu closes
+    rm -rf "$HOME/termux-style" # Delete folder immediately after selection
+else
+    termux-style < /dev/tty
 fi
 
-# --- [F] COMMAND REGISTRATION ---
+# --- 8. PHASE 5: COMMAND PERSISTENCE ---
 cp "$0" "$PREFIX/bin/auto-termux"
 chmod +x "$PREFIX/bin/auto-termux"
 
-# --- [G] ZSH CONFIGURATION ---
-echo -e "${Y}[!] Phase 4: Finalizing Custom Zsh...${N}"
+# --- 9. PHASE 6: ZSH CONFIG ---
+echo -e "${Y}[!] Phase 6: Finalizing Custom Shell...${N}"
 mkdir -p ~/.zsh_plugins
 [[ -d ~/.zsh_plugins/zsh-syntax-highlighting ]] || git clone https://github.com/zsh-users/zsh-syntax-highlighting ~/.zsh_plugins/zsh-syntax-highlighting
 [[ -d ~/.zsh_plugins/zsh-autosuggestions ]] || git clone https://github.com/zsh-users/zsh-autosuggestions ~/.zsh_plugins/zsh-autosuggestions
@@ -102,162 +101,17 @@ alias auto-termux='auto-termux'
 PROMPT='%B%F{51}(%F{51}${nickname}%F{51}) %F{226}➜ %F{33}%~ %F{118}$ %f%b'
 EOF
 
-# ==============================================================================
-# 4. FINAL CLEANUP & HANDOVER
-# ==============================================================================
+# --- 10. FINAL CLEANUP ---
 chsh -s zsh
 echo -e "\n${G}────────────────────────────────────────────────────────────${N}"
 echo -e "       ${W}SYSTEM READY: TYPE ${C}auto-termux${W} TO RERUN${N}"
-echo -e "       ${R}CLEANUP COMPLETE: setup.sh and source folders REMOVED${N}"
+echo -e "       ${R}CLEANUP COMPLETE: setup.sh & termux-style REMOVED${N}"
 echo -e "${G}────────────────────────────────────────────────────────────${N}"
 
-# Self-destruct original file only
+# Background removal of original installer
 (sleep 2; rm -f "$0") & 
 exec zsh
-
-setup_icons() {
-    echo -e "${Y}[!] Phase 2: Deploying Nerd-Font Glyphs...${N}"
-    mkdir -p ~/.termux
-    curl -L "https://github.com/romkatv/powerlevel10k-media/raw/master/MesloLGS%20NF%20Regular.ttf" -o ~/.termux/font.ttf
-    echo "font-size = 13" > ~/.termux/termux.properties && termux-reload-settings
-}
-
-# ==============================================================================
-# 4. DEVELOPMENT STACK MODULES
-# ==============================================================================
-install_frontend() {
-    echo -e "\n${P}⚡ FRONTEND STACK ACTIVATED${N}"
-    pkg install nodejs -y
-    read -p "$(echo -e "${C}Install global tools (live-server, prettier)? [y/n] ❱ ${N}")" npm_choice
-    [[ "$npm_choice" =~ ^[Yy]$ ]] && npm install -g live-server prettier
-}
-
-install_backend() {
-    echo -e "\n${B}⚙ BACKEND STACK ACTIVATED${N}"
-    pkg install python python-pip mariadb -y
-}
-
-# ==============================================================================
-# 5. STYLE & COMMAND REGISTRATION
-# ==============================================================================
-apply_styling() {
-    echo -e "${Y}[!] Phase 3: Launching Style Engine...${N}"
-    if [[ ! -d "$HOME/termux-style" ]]; then
-        git clone https://github.com/adi1090x/termux-style "$HOME/termux-style"
-        cd "$HOME/termux-style" && ./install
-        
-        # Trigger and Wait
-        echo -e "${G}[!] Selection Menu Opening... Cleanup starts after closing.${N}"
-        termux-style
-        
-        cd - > /dev/null
-        rm -rf "$HOME/termux-style" # Nuclear removal
-    else
-        termux-style
-    fi
-}
-
-register_command() {
-    # Move script to bin for 'auto-termux' rerun capability
-    cp "$0" "$PREFIX/bin/auto-termux"
-    chmod +x "$PREFIX/bin/auto-termux"
-}
-
-# ==============================================================================
-# 6. MAIN EXECUTION FLOW
-# ==============================================================================
-draw_banner
-
-# User Input Section
-while true; do
-    echo -e -n "${W}Enter Your Nickname ${G}❱ ${N}"; read nickname
-    [[ -n "$nickname" ]] && break
-done
-
-echo -e "\n${U}${W}CHOOSE YOUR PATH:${N}"
-echo -e "${C}1. ${G}Frontend   ${C}2. ${B}Backend   ${C}3. ${P}Fullstack${N}"
-read -p "Select Path [1-3] ❱ " choice
-
-# Start Workflow
-system_repair
-setup_icons
-
-case $choice in
-    1) install_frontend ;;
-    2) install_backend ;;
-    3) install_frontend && install_backend ;;
-esac
-
-apply_styling
-register_command
-
-# Zsh Configuration
-echo -e "${Y}[!] Phase 4: Finalizing Custom Zsh...${N}"
-mkdir -p ~/.zsh_plugins
-[[ -d ~/.zsh_plugins/zsh-syntax-highlighting ]] || git clone https://github.com/zsh-users/zsh-syntax-highlighting ~/.zsh_plugins/zsh-syntax-highlighting
-[[ -d ~/.zsh_plugins/zsh-autosuggestions ]] || git clone https://github.com/zsh-users/zsh-autosuggestions ~/.zsh_plugins/zsh-autosuggestions
-
-cat << EOF > ~/.zshrc
-export TERM="xterm-256color"
-export LC_ALL=C.UTF-8
-source ~/.zsh_plugins/zsh-autosuggestions/zsh-autosuggestions.zsh
-source ~/.zsh_plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
-alias ls='eza --icons=always --group-directories-first'
-alias ll='eza -lh --icons=always --group-directories-first'
-alias auto-termux='auto-termux'
-PROMPT='%B%F{51}(%F{51}${nickname}%F{51}) %F{226}➜ %F{33}%~ %F{118}$ %f%b'
-EOF
-
-# ==============================================================================
-# 7. CLEANUP & HANDOVER
-# ==============================================================================
-chsh -s zsh
-echo -e "\n${G}────────────────────────────────────────────────────────────${N}"
-echo -e "       ${W}CLEANUP COMPLETE: ${R}setup.sh & termux-style REMOVED${N}"
-echo -e "       ${W}SYSTEM READY: TYPE ${C}auto-termux${W} TO RERUN${N}"
-echo -e "${G}────────────────────────────────────────────────────────────${N}"
-
-# Background self-destruct of the original file
-(sleep 2; rm -f "$0") & 
-exec zsh
-pkg install python python-pip mariadb -y
-echo -e "${G}[+] Backend environment ready.${N}"
-EOF
-
-    # Create Fullstack Module (Calls both)
-    cat << 'EOF' > ./files/fullstack.sh
-#!/data/data/com.termux/files/usr/bin/bash
-BASE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-bash "$BASE_DIR/frontend.sh"
-bash "$BASE_DIR/backend.sh"
-EOF
-
-    chmod +x ./files/*.sh
-}
-
-# --- 3. SYSTEM REPAIR & INITIALIZATION ---
-clear
-echo -e "${C}  ____  _______     __   ____ _____  _  _____ _   _ ____  "
-echo " |  _ \| ____\ \   / /  / ___|_   _|/ \|_   _| | | / ___| "
-echo " | | | |  _|  \ \ / /___\___ \ | | / _ \ | | | | | \___ \ "
-echo " | |_| | |___  \ V /_____|__) || |/ ___ \| | | |_| |___) |"
-echo " |____/|_____|  \_/     |____/ |_/_/   \_\_|  \___/|____/ ${N}"
-echo -e "          MODULAR GITHUB-READY DEVELOPER SETUP\n"
-
-# Validate Nickname
-while true; do
-    read -p "Enter Nickname for Prompt: " nickname
-    [[ -n "$nickname" ]] && break
-done
-
-# Path Selection
-echo -e "\n${G}SELECT YOUR DEVELOPMENT PATH:${N}"
-echo -e "${C}1)${N} Frontend   ${C}2)${N} Backend   ${C}3)${N} Fullstack"
-while true; do
-    read -p "Selection [1-3]: " choice
-    case $choice in
-        1) script_file="frontend.sh"; break ;;
-        2) script_file="backend.sh"; break ;;
+h"; break ;;
         3) script_file="fullstack.sh"; break ;;
         *) echo -e "${R}Invalid selection.${N}" ;;
     esac
