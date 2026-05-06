@@ -56,4 +56,26 @@ case $choice in
     *)
         echo -e "${R}Invalid choice ❌${N}"
         ;;
+esacread choice
+
+# ================= BASIC RESPONSE =================
+echo ""
+
+case $choice in
+    1)
+        echo -e "${C}Frontend mode selected ⚡${N}"
+        ;;
+    2)
+        echo -e "${C}Backend mode selected ⚙${N}"
+        ;;
+    3)
+        echo -e "${C}Custom install mode selected 📦${N}"
+        ;;
+    4)
+        echo -e "${Y}Exiting... Bye ${nickname} 👋${N}"
+        exit
+        ;;
+    *)
+        echo -e "${R}Invalid choice ❌${N}"
+        ;;
 esac
