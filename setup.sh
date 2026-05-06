@@ -14,10 +14,10 @@ U='\033[4m'
 
 # ===== FUNCTIONS =====
 install_frontend() {
-    echo -e "\n${P}⚡ STARTING FRONTEND SETUP...${N}"
-    pkg install nodejs -y
+    echo -e "\n${P}⚡ FRONTEND SETUP${N}"
+    pkg install nodejs git -y
 
-    echo -ne "${C}Install global tools (live-server, prettier)? [y/n] ❱ ${N}"
+    echo -ne "${C}Install live-server + prettier? [y/n] ❱ ${N}"
     read npm_choice
 
     if [[ "$npm_choice" =~ ^[Yy]$ ]]; then
@@ -26,8 +26,20 @@ install_frontend() {
 }
 
 install_backend() {
-    echo -e "\n${B}⚙ STARTING BACKEND SETUP...${N}"
-    pkg install python python-pip mariadb -y
+    echo -e "\n${B}⚙ BACKEND SETUP${N}"
+    pkg install python python-pip mariadb php git -y
+}
+
+install_custom() {
+    echo -e "\n${P}📦 CUSTOM PACKAGE INSTALLER${N}"
+    echo -ne "${C}Enter packages (example: python git nodejs php) ❱ ${N}"
+    read custom_packages
+
+    if [[ -n "$custom_packages" ]]; then
+        pkg install $custom_packages -y
+    else
+        echo -e "${Y}No packages entered. Skipping.${N}"
+    fi
 }
 
 # ===== UI =====
@@ -35,6 +47,125 @@ clear
 echo -e "${C}────────────────────────────────────────────────────────────${N}"
 echo -e "${P}  ____  _______     __   ____ _____  _  _____ _   _ ____  ${N}"
 echo -e "${P} |  _ \| ____\ \   / /  / ___|_   _|/ \|_   _| | | / ___| ${N}"
+echo -e "${P} | | | |  _|  \ \ / /___\___ \ | | / _ \ | | | | | \___ \ ${N}"
+echo -e "${P} | |_| | |___  \ V /_____|__) || |/ ___ \| | | |_| |___) |${N}"
+echo -e "${P} |____/|_____|  \_/     |____/ |_/_/   \_\_|  \___/|____/ ${N}"
+echo -e "${C}────────────────────────────────────────────────────────────${N}"
+echo -e "        ${BG_B}${W} AUTO TERMUX SETUP ${N}"
+echo -e "${C}────────────────────────────────────────────────────────────${N}"
+
+# ===== NICKNAME =====
+echo -ne "${W}Enter Your Nickname ❱ ${N}"
+read nickname
+[[ -z "$nickname" ]] && nickname="User"
+
+# ===== MENU =====
+echo -e "\n${U}${W}CHOOSE YOUR DEVELOPMENT PATH:${N}"
+echo -e "${C}1.${G} Frontend"
+echo -e "${C}2.${B} Backend"
+echo -e "${C}3.${P} Custom Packages"
+echo -e "${C}4.${Y} Just UI"
+echo -ne "\n${W}Select [1-4] ❱ ${N}"
+read choice
+
+# ===== UPDATE =====
+echo -e "\n${Y}[!] Updating system...${N}"
+pkg update -y && pkg upgrade -y
+pkg install zsh git curl eza ncurses-utils -y
+
+# ===== FONT =====
+echo -e "\n${Y}[!] Installing Nerd Font...${N}"
+mkdir -p ~/.termux
+
+curl -L \
+"https://github.com/romkatv/powerlevel10k-media/raw/master/MesloLGS%20NF%20Regular.ttf" \
+-o ~/.termux/font.ttf
+
+echo "font-size = 13" > ~/.termux/termux.properties
+termux-reload-settings
+
+# ===== PACKAGE MODE =====
+case $choice in
+    1)
+        install_frontend
+        ;;
+    2)
+        install_backend
+        ;;
+    3)
+        install_custom
+        ;;
+    4)
+        echo -e "${Y}UI ONLY MODE ENABLED${N}"
+        ;;
+    *)
+        echo -e "${Y}Invalid option. Using UI only mode.${N}"
+        ;;
+esac
+
+# ===== TERMUX STYLE =====
+echo -e "\n${Y}[!] Installing termux-style...${N}"
+
+if [[ ! -d "$HOME/termux-style" ]]; then
+    git clone https://github.com/adi1090x/termux-style "$HOME/termux-style"
+    cd "$HOME/termux-style" || exit
+    chmod +x install
+    ./install
+fi
+
+cd "$HOME" || exit
+
+echo -e "${G}Choose your theme now.${N}"
+echo -e "${C}Return here after theme selection.${N}"
+
+bash -c "termux-style"
+read -p "Done styling? Press Enter to continue..."
+
+rm -rf "$HOME/termux-style"
+
+# ===== SAVE COMMAND =====
+cp "$0" "$PREFIX/bin/auto-termux"
+chmod +x "$PREFIX/bin/auto-termux"
+
+# ===== ZSH =====
+echo -e "\n${Y}[!] Configuring ZSH...${N}"
+
+mkdir -p ~/.zsh_plugins
+
+[[ ! -d ~/.zsh_plugins/zsh-syntax-highlighting ]] && \
+git clone https://github.com/zsh-users/zsh-syntax-highlighting \
+~/.zsh_plugins/zsh-syntax-highlighting
+
+[[ ! -d ~/.zsh_plugins/zsh-autosuggestions ]] && \
+git clone https://github.com/zsh-users/zsh-autosuggestions \
+~/.zsh_plugins/zsh-autosuggestions
+
+cat > ~/.zshrc << EOF
+export TERM="xterm-256color"
+export LC_ALL=C.UTF-8
+
+source ~/.zsh_plugins/zsh-autosuggestions/zsh-autosuggestions.zsh
+source ~/.zsh_plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+
+alias ls='eza --icons=always --group-directories-first'
+alias ll='eza -lh --icons=always --group-directories-first'
+alias auto-termux='auto-termux'
+
+PROMPT="%B%F{51}( ${nickname} ) %F{226}➜ %F{33}%~ %F{118}$ %f%b"
+EOF
+
+chsh -s zsh
+
+# ===== CLEANUP =====
+echo -e "\n${G}Cleaning installer files...${N}"
+rm -f "$0"
+
+echo -e "${G}────────────────────────────────────────────────────────────${N}"
+echo -e "${W}SETUP COMPLETE${N}"
+echo -e "${C}Run again anytime with: auto-termux${N}"
+echo -e "${G}────────────────────────────────────────────────────────────${N}"
+
+exec zshecho -e "${P} |  _ \| ____\ \   / /  / ___|_   _|/ \|_   _| | | / ___| ${N}"
 echo -e "${P} | | | |  _|  \ \ / /___\___ \ | | / _ \ | | | | | \___ \ ${N}"
 echo -e "${P} | |_| | |___  \ V /_____|__) || |/ ___ \| | | |_| |___) |${N}"
 echo -e "${P} |____/|_____|  \_/     |____/ |_/_/   \_\_|  \___/|____/ ${N}"
