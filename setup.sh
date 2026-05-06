@@ -9,8 +9,22 @@ P='\033[1;35m'
 C='\033[1;36m'
 W='\033[1;37m'
 N='\033[0m'
-BG_B='\033[44m'
 U='\033[4m'
+
+# ===== RANDOM COLOR ENGINE =====
+colors=(
+"\033[1;31m" "\033[1;32m" "\033[1;33m"
+"\033[1;34m" "\033[1;35m" "\033[1;36m"
+"\033[1;37m"
+)
+
+random_color_word() {
+    for word in $1; do
+        color=${colors[$RANDOM % ${#colors[@]}]}
+        echo -ne "${color}${word}${N} "
+    done
+    echo ""
+}
 
 # ===== FUNCTIONS =====
 install_frontend() {
@@ -20,9 +34,7 @@ install_frontend() {
     echo -ne "${C}Install live-server + prettier? [y/n] ❱ ${N}"
     read npm_choice
 
-    if [[ "$npm_choice" =~ ^[Yy]$ ]]; then
-        npm install -g live-server prettier
-    fi
+    [[ "$npm_choice" =~ ^[Yy]$ ]] && npm install -g live-server prettier
 }
 
 install_backend() {
@@ -32,79 +44,65 @@ install_backend() {
 
 install_custom() {
     echo -e "\n${P}📦 CUSTOM PACKAGE INSTALLER${N}"
-    echo -ne "${C}Enter packages (example: python git nodejs php) ❱ ${N}"
+    echo -ne "${C}Enter packages ❱ ${N}"
     read custom_packages
 
-    if [[ -n "$custom_packages" ]]; then
-        pkg install $custom_packages -y
-    else
-        echo -e "${Y}No packages entered. Skipping.${N}"
-    fi
+    [[ -n "$custom_packages" ]] && pkg install $custom_packages -y
 }
 
 # ===== UI =====
 clear
-echo -e "${C}────────────────────────────────────────────────────────────${N}"
-echo -e "${P}  ____  _______     __   ____ _____  _  _____ _   _ ____  ${N}"
-echo -e "${P} |  _ \| ____\ \   / /  / ___|_   _|/ \|_   _| | | / ___| ${N}"
-echo -e "${P} | | | |  _|  \ \ / /___\___ \ | | / _ \ | | | | | \___ \ ${N}"
-echo -e "${P} | |_| | |___  \ V /_____|__) || |/ ___ \| | | |_| |___) |${N}"
-echo -e "${P} |____/|_____|  \_/     |____/ |_/_/   \_\_|  \___/|____/ ${N}"
-echo -e "${C}────────────────────────────────────────────────────────────${N}"
-echo -e "        ${BG_B}${W} AUTO TERMUX SETUP ${N}"
-echo -e "${C}────────────────────────────────────────────────────────────${N}"
+echo -e "${C}────────────────────────────────────────────${N}"
+echo -e "${P} AUTO TERMUX SETUP ${N}"
+echo -e "${C}────────────────────────────────────────────${N}"
 
-# ===== NICKNAME =====
 echo -ne "${W}Enter Your Nickname ❱ ${N}"
 read nickname
 [[ -z "$nickname" ]] && nickname="User"
 
-# ===== MENU =====
-echo -e "\n${U}${W}CHOOSE YOUR DEVELOPMENT PATH:${N}"
-echo -e "${C}1.${G} Frontend"
-echo -e "${C}2.${B} Backend"
-echo -e "${C}3.${P} Custom Packages"
-echo -e "${C}4.${Y} Just UI"
-echo -ne "\n${W}Select [1-4] ❱ ${N}"
+echo -e "\n${U}${W}CHOOSE MODE:${N}"
+echo -e "${C}1 Frontend"
+echo -e "${C}2 Backend"
+echo -e "${C}3 Custom Packages"
+echo -e "${C}4 Just UI"
+echo -ne "\nSelect [1-4] ❱ ${N}"
 read choice
 
-# ===== UPDATE =====
-echo -e "\n${Y}[!] Updating system...${N}"
+# ===== SYSTEM =====
 pkg update -y && pkg upgrade -y
 pkg install zsh git curl eza ncurses-utils -y
 
 # ===== FONT =====
-echo -e "\n${Y}[!] Installing Nerd Font...${N}"
 mkdir -p ~/.termux
-
-curl -L \
-"https://github.com/romkatv/powerlevel10k-media/raw/master/MesloLGS%20NF%20Regular.ttf" \
+curl -L "https://github.com/romkatv/powerlevel10k-media/raw/master/MesloLGS%20NF%20Regular.ttf" \
 -o ~/.termux/font.ttf
-
 echo "font-size = 13" > ~/.termux/termux.properties
 termux-reload-settings
 
-# ===== PACKAGE MODE =====
+# ===== MODE SELECT =====
 case $choice in
-    1)
-        install_frontend
-        ;;
-    2)
-        install_backend
-        ;;
-    3)
-        install_custom
-        ;;
-    4)
-        echo -e "${Y}UI ONLY MODE ENABLED${N}"
-        ;;
-    *)
-        echo -e "${Y}Invalid option. Using UI only mode.${N}"
-        ;;
+    1) install_frontend ;;
+    2) install_backend ;;
+    3) install_custom ;;
+    4) echo -e "${Y}UI ONLY MODE${N}" ;;
 esac
 
+# ===== COMMAND UI PREVIEW =====
+echo -e "\n${U}COMMAND PREVIEW UI${N}\n"
+
+echo -e "${C}Single command:${N}"
+random_color_word "pkg install python"
+
+echo -e "\n${C}Multiple commands (one line):${N}"
+random_color_word "pkg update && pkg upgrade && pkg install git"
+
+echo -e "\n${C}Multiple commands (multi-line):${N}"
+random_color_word "pkg update -y"
+random_color_word "pkg upgrade -y"
+random_color_word "pkg install git -y"
+
 # ===== TERMUX STYLE =====
-echo -e "\n${Y}[!] Installing termux-style...${N}"
+echo -e "\n${Y}Installing termux-style...${N}"
 
 if [[ ! -d "$HOME/termux-style" ]]; then
     git clone https://github.com/adi1090x/termux-style "$HOME/termux-style"
@@ -113,13 +111,10 @@ if [[ ! -d "$HOME/termux-style" ]]; then
     ./install
 fi
 
-cd "$HOME" || exit
-
-echo -e "${G}Choose your theme now.${N}"
-echo -e "${C}Return here after theme selection.${N}"
+cd "$HOME"
 
 bash -c "termux-style"
-read -p "Done styling? Press Enter to continue..."
+read -p "Done styling? Press Enter..."
 
 rm -rf "$HOME/termux-style"
 
@@ -128,310 +123,35 @@ cp "$0" "$PREFIX/bin/auto-termux"
 chmod +x "$PREFIX/bin/auto-termux"
 
 # ===== ZSH =====
-echo -e "\n${Y}[!] Configuring ZSH...${N}"
-
 mkdir -p ~/.zsh_plugins
-
-[[ ! -d ~/.zsh_plugins/zsh-syntax-highlighting ]] && \
-git clone https://github.com/zsh-users/zsh-syntax-highlighting \
-~/.zsh_plugins/zsh-syntax-highlighting
 
 [[ ! -d ~/.zsh_plugins/zsh-autosuggestions ]] && \
 git clone https://github.com/zsh-users/zsh-autosuggestions \
 ~/.zsh_plugins/zsh-autosuggestions
 
-cat > ~/.zshrc << EOF
-export TERM="xterm-256color"
-export LC_ALL=C.UTF-8
-
-source ~/.zsh_plugins/zsh-autosuggestions/zsh-autosuggestions.zsh
-source ~/.zsh_plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
-
-alias ls='eza --icons=always --group-directories-first'
-alias ll='eza -lh --icons=always --group-directories-first'
-alias auto-termux='auto-termux'
-
-PROMPT="%B%F{51}( ${nickname} ) %F{226}➜ %F{33}%~ %F{118}$ %f%b"
-EOF
-
-chsh -s zsh
-
-# ===== CLEANUP =====
-echo -e "\n${G}Cleaning installer files...${N}"
-rm -f "$0"
-
-echo -e "${G}────────────────────────────────────────────────────────────${N}"
-echo -e "${W}SETUP COMPLETE${N}"
-echo -e "${C}Run again anytime with: auto-termux${N}"
-echo -e "${G}────────────────────────────────────────────────────────────${N}"
-
-exec zshecho -e "${P} |  _ \| ____\ \   / /  / ___|_   _|/ \|_   _| | | / ___| ${N}"
-echo -e "${P} | | | |  _|  \ \ / /___\___ \ | | / _ \ | | | | | \___ \ ${N}"
-echo -e "${P} | |_| | |___  \ V /_____|__) || |/ ___ \| | | |_| |___) |${N}"
-echo -e "${P} |____/|_____|  \_/     |____/ |_/_/   \_\_|  \___/|____/ ${N}"
-echo -e "${C}────────────────────────────────────────────────────────────${N}"
-echo -e "       ${BG_B}${W} AUTO TERMUX SETUP ${N}"
-echo -e "${C}────────────────────────────────────────────────────────────${N}"
-
-# ===== NICKNAME =====
-echo -ne "${W}Enter Your Nickname ❱ ${N}"
-read nickname
-[[ -z "$nickname" ]] && nickname="User"
-
-# ===== MENU =====
-echo -e "\n${U}${W}CHOOSE YOUR DEVELOPMENT PATH:${N}"
-echo -e "${C}1.${G} Frontend ${W}| ${C}2.${B} Backend ${W}| ${C}3.${P} Fullstack${N}"
-echo -ne "${W}Select [1-3] ❱ ${N}"
-read choice
-
-# ===== SYSTEM UPDATE =====
-echo -e "\n${Y}[!] Updating system...${N}"
-pkg update -y && pkg upgrade -y
-pkg install zsh git curl eza ncurses-utils -y
-
-# ===== FONT INSTALL =====
-echo -e "\n${Y}[!] Installing Nerd Font...${N}"
-mkdir -p ~/.termux
-
-curl -L \
-"https://github.com/romkatv/powerlevel10k-media/raw/master/MesloLGS%20NF%20Regular.ttf" \
--o ~/.termux/font.ttf
-
-echo "font-size = 13" > ~/.termux/termux.properties
-termux-reload-settings
-
-# ===== STACK INSTALL =====
-case $choice in
-    1) install_frontend ;;
-    2) install_backend ;;
-    3)
-        install_frontend
-        install_backend
-        ;;
-    *)
-        echo -e "${Y}Skipping stack install...${N}"
-        ;;
-esac
-
-# ===== TERMUX STYLE =====
-echo -e "\n${Y}[!] Installing termux-style...${N}"
-
-if [[ ! -d "$HOME/termux-style" ]]; then
-    git clone https://github.com/adi1090x/termux-style "$HOME/termux-style"
-    cd "$HOME/termux-style" || exit
-    chmod +x install
-    ./install
-fi
-
-cd "$HOME" || exit
-
-echo -e "${G}Choose your theme now.${N}"
-echo -e "${C}After finishing theme selection, return here.${N}"
-
-bash -c "termux-style"
-read -p "Done styling? Press Enter to continue..."
-
-# remove termux-style folder after install
-rm -rf "$HOME/termux-style"
-
-# ===== SAVE COMMAND =====
-cp "$0" "$PREFIX/bin/auto-termux"
-chmod +x "$PREFIX/bin/auto-termux"
-
-# ===== ZSH CONFIG =====
-echo -e "\n${Y}[!] Configuring ZSH...${N}"
-
-mkdir -p ~/.zsh_plugins
-
 [[ ! -d ~/.zsh_plugins/zsh-syntax-highlighting ]] && \
 git clone https://github.com/zsh-users/zsh-syntax-highlighting \
 ~/.zsh_plugins/zsh-syntax-highlighting
 
-[[ ! -d ~/.zsh_plugins/zsh-autosuggestions ]] && \
-git clone https://github.com/zsh-users/zsh-autosuggestions \
-~/.zsh_plugins/zsh-autosuggestions
-
 cat > ~/.zshrc << EOF
 export TERM="xterm-256color"
-export LC_ALL=C.UTF-8
 
 source ~/.zsh_plugins/zsh-autosuggestions/zsh-autosuggestions.zsh
 source ~/.zsh_plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 
-alias ls='eza --icons=always --group-directories-first'
-alias ll='eza -lh --icons=always --group-directories-first'
+alias ls='eza --icons=always'
+alias ll='eza -lh --icons=always'
 alias auto-termux='auto-termux'
 
-PROMPT="%B%F{51}( ${nickname} ) %F{226}➜ %F{33}%~ %F{118}$ %f%b"
+PROMPT="%B%F{51}( ${nickname} ) ➜ %~ $ %f%b"
 EOF
 
 chsh -s zsh
 
-# ===== CLEANUP =====
-echo -e "\n${G}Cleaning installer files...${N}"
+# ===== CLEAN =====
 rm -f "$0"
 
-echo -e "${G}────────────────────────────────────────────────────────────${N}"
-echo -e "${W}Setup Complete.${N}"
-echo -e "${C}Run again anytime with: auto-termux${N}"
-echo -e "${G}────────────────────────────────────────────────────────────${N}"
+echo -e "\n${G}SETUP COMPLETE${N}"
+echo -e "${C}Run: auto-termux${N}"
 
-exec zshecho -e "${P} |  _ \| ____\ \   / /  / ___|_   _|/ \|_   _| | | / ___| ${N}"
-echo -e "${P} | | | |  _|  \ \ / /___\___ \ | | / _ \ | | | | | \___ \ ${N}"
-echo -e "${P} | |_| | |___  \ V /_____|__) || |/ ___ \| | | |_| |___) |${N}"
-echo -e "${P} |____/|_____|  \_/     |____/ |_/_/   \_\_|  \___/|____/ ${N}"
-echo -e "${C}────────────────────────────────────────────────────────────${N}"
-echo -e "       ${BG_B}${W}  AUTO-REPAIR  ${N} ❱❱❱ ${BG_B}${W} COMMAND: auto-termux ${N}"
-echo -e "${C}────────────────────────────────────────────────────────────${N}"
-
-# ===== NICKNAME =====
-echo -ne "${W}Enter Your Nickname ❱ ${N}"
-read nickname
-
-if [[ -z "$nickname" ]]; then
-    nickname="User"
-fi
-
-# ===== MENU =====
-echo -e "\n${U}${W}CHOOSE YOUR DEVELOPMENT PATH:${N}"
-echo -e "${C}1.${G} Frontend ${W}| ${C}2.${B} Backend ${W}| ${C}3.${P} Fullstack${N}"
-echo -ne "${W}Select [1-3] ❱ ${N}"
-read choice
-
-# ===== PHASE 1 =====
-echo -e "\n${Y}[!] Phase 1: System Repair & Package Sync...${N}"
-apt update -y
-apt full-upgrade -y
-pkg install zsh git curl eza ncurses-utils -y
-
-# ===== PHASE 2 =====
-echo -e "\n${Y}[!] Phase 2: Installing Nerd Font...${N}"
-mkdir -p ~/.termux
-
-curl -L \
-"https://github.com/romkatv/powerlevel10k-media/raw/master/MesloLGS%20NF%20Regular.ttf" \
--o ~/.termux/font.ttf
-
-echo "font-size = 13" > ~/.termux/termux.properties
-termux-reload-settings
-
-# ===== PHASE 3 =====
-case $choice in
-    1) install_frontend ;;
-    2) install_backend ;;
-    3)
-        install_frontend
-        install_backend
-        ;;
-    *)
-        echo -e "${Y}Skipping stack install...${N}"
-        ;;
-esac
-
-# ===== PHASE 4 STYLE =====
-echo -e "\n${Y}[!] Phase 4: Launching Style Engine...${N}"
-
-if [[ ! -d "$HOME/termux-style" ]]; then
-    git clone https://github.com/adi1090x/termux-style "$HOME/termux-style"
-    cd "$HOME/termux-style" || exit
-    chmod +x install
-    ./install
-fi
-
-cd "$HOME" || exit
-
-echo -e "${G}Choose your theme now.${N}"
-echo -e "${C}After finishing theme selection press ENTER here.${N}"
-
-bash -c "termux-style"
-read -p "Done styling? Press Enter to continue..."
-
-# ===== COMMAND SAVE =====
-cp "$0" "$PREFIX/bin/auto-termux"
-chmod +x "$PREFIX/bin/auto-termux"
-
-# ===== ZSH SETUP =====
-echo -e "\n${Y}[!] Phase 5: Configuring ZSH...${N}"
-
-mkdir -p ~/.zsh_plugins
-
-if [[ ! -d ~/.zsh_plugins/zsh-syntax-highlighting ]]; then
-    git clone https://github.com/zsh-users/zsh-syntax-highlighting \
-    ~/.zsh_plugins/zsh-syntax-highlighting
-fi
-
-if [[ ! -d ~/.zsh_plugins/zsh-autosuggestions ]]; then
-    git clone https://github.com/zsh-users/zsh-autosuggestions \
-    ~/.zsh_plugins/zsh-autosuggestions
-fi
-
-cat > ~/.zshrc << EOF
-export TERM="xterm-256color"
-export LC_ALL=C.UTF-8
-
-source ~/.zsh_plugins/zsh-autosuggestions/zsh-autosuggestions.zsh
-source ~/.zsh_plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
-
-alias ls='eza --icons=always --group-directories-first'
-alias ll='eza -lh --icons=always --group-directories-first'
-alias auto-termux='auto-termux'
-
-PROMPT="%B%F{51}( ${nickname} ) %F{226}➜ %F{33}%~ %F{118}$ %f%b"
-EOF
-
-chsh -s zsh
-
-# ===== DONE =====
-echo -e "\n${G}────────────────────────────────────────────────────────────${N}"
-echo -e "${W}Setup complete.${N}"
-echo -e "${C}Run anytime with: auto-termux${N}"
-echo -e "${G}────────────────────────────────────────────────────────────${N}"
-
-exec zsh    fi
-    
-    # Update plugins in .zshrc
-    log "Configuring Zsh plugins..."
-    {
-        echo ""
-        echo "# Custom plugins"
-        echo "plugins=(git zsh-syntax-highlighting zsh-autosuggestions)"
-        echo ""
-        echo "# Aliases"
-        echo "alias ll='eza -lh --icons'"
-        echo "alias la='eza -a --icons'"
-        echo "alias tree='eza --tree --icons'"
-        echo "alias cat='bat'"
-    } >> "$HOME/.zshrc" || true
-    
-    success "Zsh setup completed"
-}
-
-################################################################################
-# Modular Files Directory
-################################################################################
-
-create_modular_directory() {
-    log "Creating modular files directory structure..."
-    
-    mkdir -p "$FILES_DIR"
-    
-    # Create README for files directory
-    cat > "$FILES_DIR/README.md" << 'EOF'
-# Setup Files Directory
-
-This directory contains modular setup scripts for different development stacks.
-
-## Available Stacks
-
-- **frontend.sh** - Frontend development (Node.js, npm, Live Server)
-- **backend.sh** - Backend development (Python, SQL, Flask/Django)
-- **fullstack.sh** - Complete fullstack development environment
-
-## Usage
-
-Run individual stack scripts:
-
-```bash
-bash files/frontend.sh
-bash files/backend.sh
-bash files/fullstack.sh
+exec zsh
