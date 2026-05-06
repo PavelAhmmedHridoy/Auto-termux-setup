@@ -16,12 +16,12 @@ cat << "EOF"
 ╔════════════════════════════════════════════╗
 ║        ⚡ TERMINAL UI ENGINE v2 ⚡          ║
 ╠════════════════════════════════════════════╣
-║        SYSTEM UPDATE • CORE MODULE         ║
+║      ASCII • MENU • UPDATE SYSTEM          ║
 ╚════════════════════════════════════════════╝
 EOF
 echo -e "${N}"
 
-# ================= INPUT =================
+# ================= NICKNAME INPUT =================
 echo -ne "${W}Enter your nickname ❱ ${N}"
 read nickname
 nickname=${nickname:-User}
@@ -47,72 +47,39 @@ system_update() {
     echo -e "${Y}⬆ Upgrading packages...${N}"
     pkg upgrade -y
 
-    echo -e "${G}✔ System fully updated!${N}"
+    echo -e "${G}✔ System updated successfully!${N}"
 }
 
-# ================= ACTION HANDLER =================
+# ================= ACTIONS =================
 case $choice in
     1)
-        echo -e "${C}Frontend mode selected ⚡${N}"
+        echo -e "${C}Frontend Setup Selected ⚡${N}"
         system_update
+        pkg install nodejs git -y
+        echo -e "${G}✔ Frontend tools installed${N}"
         ;;
     2)
-        echo -e "${C}Backend mode selected ⚙${N}"
+        echo -e "${C}Backend Setup Selected ⚙${N}"
         system_update
+        pkg install python php mariadb git -y
+        echo -e "${G}✔ Backend tools installed${N}"
         ;;
     3)
-        echo -e "${C}Custom install mode selected 📦${N}"
+        echo -e "${C}Custom Install Selected 📦${N}"
         system_update
+        echo -ne "${W}Enter packages ❱ ${N}"
+        read pkgs
+        [[ -n "$pkgs" ]] && pkg install $pkgs -y
+        echo -e "${G}✔ Custom packages installed${N}"
         ;;
     4)
-        echo -e "${Y}Exiting... Bye ${nickname} 👋${N}"
-        exit
-        ;;
-    *)
-        echo -e "${R}Invalid choice ❌${N}"
-        ;;
-esacread choice
-
-# ================= BASIC RESPONSE =================
-echo ""
-
-case $choice in
-    1)
-        echo -e "${C}Frontend mode selected ⚡${N}"
-        ;;
-    2)
-        echo -e "${C}Backend mode selected ⚙${N}"
-        ;;
-    3)
-        echo -e "${C}Custom install mode selected 📦${N}"
-        ;;
-    4)
-        echo -e "${Y}Exiting... Bye ${nickname} 👋${N}"
-        exit
-        ;;
-    *)
-        echo -e "${R}Invalid choice ❌${N}"
-        ;;
-esacread choice
-
-# ================= BASIC RESPONSE =================
-echo ""
-
-case $choice in
-    1)
-        echo -e "${C}Frontend mode selected ⚡${N}"
-        ;;
-    2)
-        echo -e "${C}Backend mode selected ⚙${N}"
-        ;;
-    3)
-        echo -e "${C}Custom install mode selected 📦${N}"
-        ;;
-    4)
-        echo -e "${Y}Exiting... Bye ${nickname} 👋${N}"
+        echo -e "${Y}Goodbye ${nickname} 👋${N}"
         exit
         ;;
     *)
         echo -e "${R}Invalid choice ❌${N}"
         ;;
 esac
+
+# ================= FINISH =================
+echo -e "\n${G}✔ Setup Complete${N}"
