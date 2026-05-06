@@ -1,39 +1,139 @@
-#!/bin/bash
+#!/data/data/com.termux/files/usr/bin/bash
 
-################################################################################
-# Termux Fullstack Automated Setup
-# A comprehensive, modular environment provisioner for Termux
-################################################################################
+# --- Style Colors ---
+C='\033[1;36m'; G='\033[1;32m'; Y='\033[1;33m'; R='\033[1;31m'; N='\033[0m'
 
-set -e
-
-# Colors for output
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-NC='\033[0m' # No Color
-
-# Script configuration
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-FILES_DIR="$SCRIPT_DIR/files"
-LOG_FILE="$SCRIPT_DIR/setup.log"
-
-################################################################################
-# Logging Functions
-################################################################################
-
-log() {
-    echo -e "${BLUE}[INFO]${NC} $1" | tee -a "$LOG_FILE"
+# --- 1. GLOBAL ERROR HANDLER ---
+error_handler() {
+    echo -e "\n${R}[!] CRITICAL ERROR: $1${N}" >&2
+    exit 1
 }
 
-success() {
-    echo -e "${GREEN}[✓]${NC} $1" | tee -a "$LOG_FILE"
+# --- 2. MODULAR FILE GENERATOR ---
+# This builds the 'files' folder and internal scripts automatically
+generate_modules() {
+    echo -e "${Y}[*] Creating local 'files' directory and modules...${N}"
+    mkdir -p ./files
+
+    # Create Frontend Module
+    cat << 'EOF' > ./files/frontend.sh
+#!/data/data/com.termux/files/usr/bin/bash
+C='\033[1;36m'; G='\033[1;32m'; Y='\033[1;33m'; N='\033[0m'
+echo -e "\n${C}>>> FRONTEND MODULE: NODEJS SETUP <<<${N}"
+pkg install nodejs -y
+echo -e "${Y}[?] Install global dev tools (live-server, prettier, typescript)? [y/n]${N}"
+read -p "Selection: " npm_choice
+if [[ "$npm_choice" =~ ^[Yy]$ ]]; then
+    npm install -g live-server prettier typescript
+    echo -e "${G}[+] Global tools installed successfully.${N}"
+fi
+EOF
+
+    # Create Backend Module
+    cat << 'EOF' > ./files/backend.sh
+#!/data/data/com.termux/files/usr/bin/bash
+C='\033[1;36m'; G='\033[1;32m'; Y='\033[1;33m'; N='\033[0m'
+echo -e "\n${C}>>> BACKEND MODULE: PYTHON & SQL <<<${N}"
+pkg install python python-pip mariadb -y
+echo -e "${G}[+] Backend environment ready.${N}"
+EOF
+
+    # Create Fullstack Module (Calls both)
+    cat << 'EOF' > ./files/fullstack.sh
+#!/data/data/com.termux/files/usr/bin/bash
+BASE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+bash "$BASE_DIR/frontend.sh"
+bash "$BASE_DIR/backend.sh"
+EOF
+
+    chmod +x ./files/*.sh
 }
 
-warning() {
-    echo -e "${YELLOW}[!]${NC} $1" | tee -a "$LOG_FILE"
+# --- 3. SYSTEM REPAIR & INITIALIZATION ---
+clear
+echo -e "${C}  ____  _______     __   ____ _____  _  _____ _   _ ____  "
+echo " |  _ \| ____\ \   / /  / ___|_   _|/ \|_   _| | | / ___| "
+echo " | | | |  _|  \ \ / /___\___ \ | | / _ \ | | | | | \___ \ "
+echo " | |_| | |___  \ V /_____|__) || |/ ___ \| | | |_| |___) |"
+echo " |____/|_____|  \_/     |____/ |_/_/   \_\_|  \___/|____/ ${N}"
+echo -e "          MODULAR GITHUB-READY DEVELOPER SETUP\n"
+
+# Validate Nickname
+while true; do
+    read -p "Enter Nickname for Prompt: " nickname
+    [[ -n "$nickname" ]] && break
+done
+
+# Path Selection
+echo -e "\n${G}SELECT YOUR DEVELOPMENT PATH:${N}"
+echo -e "${C}1)${N} Frontend   ${C}2)${N} Backend   ${C}3)${N} Fullstack"
+while true; do
+    read -p "Selection [1-3]: " choice
+    case $choice in
+        1) script_file="frontend.sh"; break ;;
+        2) script_file="backend.sh"; break ;;
+        3) script_file="fullstack.sh"; break ;;
+        *) echo -e "${R}Invalid selection.${N}" ;;
+    esac
+done
+
+# --- 4. PHASE 1: REPAIR & UPDATE ---
+echo -e "\n${Y}[*] Phase 1: Fixing Library Mismatches (libngtcp2/curl)...${N}"
+# Aggressive fix for broken Termux repositories
+apt update && apt full-upgrade -y || {
+    dpkg --configure -a
+    apt install -f -y
+    apt full-upgrade -y
 }
+
+# --- 5. PHASE 2: CORE TOOLS & NERD FONT ---
+echo -e "${Y}[*] Phase 2: Installing UI Core & Icon Fonts...${N}"
+pkg install zsh git eza curl ncurses-utils -y --reinstall || error_handler "Install failed."
+
+# Download and set MesloLGS Nerd Font (Essential for eza icons)
+mkdir -p ~/.termux
+curl -L "https://github.com/romkatv/powerlevel10k-media/raw/master/MesloLGS%20NF%20Regular.ttf" -o ~/.termux/font.ttf
+echo "font-size = 13" > ~/.termux/termux.properties
+termux-reload-settings
+
+# --- 6. PHASE 3: GENERATE & RUN MODULES ---
+generate_modules
+echo -e "${Y}[*] Phase 3: Executing Module ($script_file)...${N}"
+bash "./files/$script_file" || echo -e "${R}[!] Warning: Module reported errors.${N}"
+
+# --- 7. PHASE 4: ZSH CONFIGURATION (.zshrc) ---
+echo -e "${Y}[*] Phase 4: Setting up ZSH & Plugins...${N}"
+mkdir -p ~/.zsh_plugins
+[[ -d ~/.zsh_plugins/zsh-syntax-highlighting ]] || git clone https://github.com/zsh-users/zsh-syntax-highlighting ~/.zsh_plugins/zsh-syntax-highlighting
+[[ -d ~/.zsh_plugins/zsh-autosuggestions ]] || git clone https://github.com/zsh-users/zsh-autosuggestions ~/.zsh_plugins/zsh-autosuggestions
+
+cat << EOF > ~/.zshrc
+# Environment
+export TERM="xterm-256color"
+export LC_ALL=C.UTF-8
+
+# Load Plugins
+source ~/.zsh_plugins/zsh-autosuggestions/zsh-autosuggestions.zsh
+source ~/.zsh_plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+
+# Styles & Icons
+alias ls='eza --icons=always --group-directories-first'
+alias ll='eza -lh --icons=always --group-directories-first'
+alias la='eza -a --icons=always'
+
+# Bold Custom Prompt
+PROMPT='%B%F{51}(%F{51}${nickname}%F{51}) %F{226}➜ %F{33}%~ %F{118}$ %f%b'
+EOF
+
+# --- 8. FINALIZE ---
+# Setup termux-style engine for colors
+if [[ ! -d "$HOME/termux-style" ]]; then
+    git clone https://github.com/adi1090x/termux-style "$HOME/termux-style" && cd "$HOME/termux-style" && ./install && cd - > /dev/null
+fi
+
+echo -e "\n${G}[+] Setup Complete! Icons, Node.js, and Zsh are ready.${N}"
+chsh -s zsh
+exec zsh
 
 error() {
     echo -e "${RED}[✗]${NC} $1" | tee -a "$LOG_FILE"
