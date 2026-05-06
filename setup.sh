@@ -5,10 +5,11 @@ C='\033[1;36m'; W='\033[1;37m'; G='\033[1;32m'; Y='\033[1;33m'
 R='\033[1;31m'; P='\033[1;35m'; B='\033[1;34m'; N='\033[0m'
 
 # ================= ERROR HANDLER =================
-# Catches any command failure and reports the line number
 error_handler() {
     echo -e "\n${R} [!] CRITICAL ERROR at line $1${N}"
-    echo -e "${Y} [*] Setup halted. Check your internet or storage.${N}"
+    echo -e "${Y} [*] System libraries are mismatched. Manual fix attempted...${N}"
+    # Emergency fix for the curl/SSL error you just saw
+    apt update && apt install openssl libngtcp2 -y --reinstall
     exit 1
 }
 trap 'error_handler $LINENO' ERR
@@ -17,9 +18,8 @@ trap 'error_handler $LINENO' ERR
 frontend_modules() {
     echo -e "\n${W}Available Frontend Modules:${N}"
     echo -e "${C}1) live-server  2) prettier  3) vite  0) Install ALL${N}"
-    echo -ne "${Y}Would you like to install modules? [Choice/No] ❱ ${N}"
+    echo -ne "${Y}Install modules? [Choice/No] ❱ ${N}"
     read -r m_choice < /dev/tty || m_choice="No"
-    
     case $m_choice in
         1) npm install -g live-server ;;
         2) npm install -g prettier ;;
@@ -32,9 +32,8 @@ frontend_modules() {
 backend_modules() {
     echo -e "\n${W}Available Backend Modules:${N}"
     echo -e "${C}1) flask  2) fastapi  3) websockets  0) Install ALL${N}"
-    echo -ne "${Y}Would you like to install modules? [Choice/No] ❱ ${N}"
+    echo -ne "${Y}Install modules? [Choice/No] ❱ ${N}"
     read -r m_choice < /dev/tty || m_choice="No"
-    
     case $m_choice in
         1) pip install flask ;;
         2) pip install fastapi ;;
@@ -57,36 +56,41 @@ name=${name:-User}
 
 # 2. PATH SELECTION
 echo -e "\n${W}SELECT YOUR SETUP PATH:${N}"
-echo -e "${G}1) Frontend Setup ${W}(NodeJS + Modules)${N}"
-echo -e "${B}2) Backend Setup  ${W}(Python + Modules)${N}"
-echo -e "${P}3) Just UI Setup  ${W}(Styling & Zsh Only)${N}"
+echo -e "${G}1) Frontend Setup ${W}(NodeJS)${N}"
+echo -e "${B}2) Backend Setup  ${W}(Python)${N}"
+echo -e "${P}3) Just UI Setup  ${W}(Styling Only)${N}"
 echo -ne "\nChoice [1-3] ❱ ${N}"
 read -r path_choice < /dev/tty
 
-# 3. BRANCHING LOGIC
+# 3. FORCE REPAIR & CORE INSTALL
+# This fixes the "CANNOT LINK EXECUTABLE curl" error before it happens
+echo -e "\n${Y}[!] Phase 0: Repairing System Libraries...${N}"
+apt update -y
+apt install openssl libngtcp2 curl git zsh eza -y --reinstall
+
+# 4. BRANCHING LOGIC
 case $path_choice in
     1)
-        echo -e "\n${Y}[!] Phase: Installing Frontend Core...${N}"
-        apt update -y && pkg install nodejs git curl zsh eza -y
+        echo -e "\n${Y}[!] Phase 1: Installing Frontend Core...${N}"
+        pkg install nodejs -y
         frontend_modules
         ;;
     2)
-        echo -e "\n${Y}[!] Phase: Installing Backend Core...${N}"
-        apt update -y && pkg install python python-pip git curl zsh eza -y
+        echo -e "\n${Y}[!] Phase 1: Installing Backend Core...${N}"
+        pkg install python python-pip -y
         backend_modules
         ;;
     3)
-        echo -e "\n${P}[!] UI Mode: Skipping language packages...${N}"
-        apt update -y && pkg install git curl zsh eza -y
+        echo -e "\n${P}[!] UI Mode: Proceeding to Styling...${N}"
         ;;
     *)
-        echo -e "\n${R}Invalid choice. Please run 'auto-termux' to try again.${N}"
+        echo -e "\n${R}Invalid choice. Exiting.${N}"
         exit 1
         ;;
 esac
 
-# 4. UNIVERSAL UI & ICON SETUP
-echo -e "\n${Y}[*] Phase: UI & Icon Styling...${N}"
+# 5. UI & ICON SETUP (CURL SHOULD WORK NOW)
+echo -e "\n${Y}[*] Phase 2: UI & Icon Styling...${N}"
 mkdir -p ~/.termux
 curl -L "https://github.com/romkatv/powerlevel10k-media/raw/master/MesloLGS%20NF%20Regular.ttf" -o ~/.termux/font.ttf
 echo "font-size = 13" > ~/.termux/termux.properties
@@ -96,21 +100,20 @@ termux-reload-settings
 if [[ ! -d "$HOME/termux-style" ]]; then
     git clone https://github.com/adi1090x/termux-style "$HOME/termux-style"
     cd "$HOME/termux-style" && ./install
-    echo -e "${G}>>> SELECT THEME NOW. SCRIPT WILL CONTINUE AFTER EXIT.${N}"
+    echo -e "${G}>>> SELECT THEME NOW...${N}"
     termux-style < /dev/tty
     cd - > /dev/null
-    rm -rf "$HOME/termux-style" # Delete styling folder
+    rm -rf "$HOME/termux-style"
 else
     termux-style < /dev/tty
 fi
 
-# 5. REGISTER DEFAULT COMMAND
-# Save this script to system bin before it deletes itself
+# 6. REGISTER PERMANENT COMMAND
 cp "$0" "$PREFIX/bin/auto-termux"
 chmod +x "$PREFIX/bin/auto-termux"
 
-# 6. SHELL CONFIGURATION
-echo -e "${Y}[!] Phase: Finalizing Shell Environment...${N}"
+# 7. SHELL CONFIG
+echo -e "${Y}[!] Phase 3: Finalizing Shell Environment...${N}"
 mkdir -p ~/.zsh_plugins
 [[ -d ~/.zsh_plugins/zsh-syntax-highlighting ]] || git clone https://github.com/zsh-users/zsh-syntax-highlighting ~/.zsh_plugins/zsh-syntax-highlighting
 [[ -d ~/.zsh_plugins/zsh-autosuggestions ]] || git clone https://github.com/zsh-users/zsh-autosuggestions ~/.zsh_plugins/zsh-autosuggestions
@@ -125,7 +128,16 @@ alias auto-termux='auto-termux'
 PROMPT='%B%F{51}(%F{51}${name}%F{51}) %F{226}➜ %F{33}%~ %F{118}$ %f%b'
 EOF
 
-# 7. CLEANUP & HANDOVER
+# 8. CLEANUP & HANDOVER
+chsh -s zsh
+echo -e "\n${G}────────────────────────────────────────────────────────────${N}"
+echo -e "       ${W}SYSTEM REPAIRED & READY!${N}"
+echo -e "       ${W}TYPE ${C}auto-termux${W} TO RERUN${N}"
+echo -e "       ${R}CLEANUP: setup.sh & folders REMOVED${N}"
+echo -e "${G}────────────────────────────────────────────────────────────${N}"
+
+(sleep 2; rm -f "$0") & 
+exec zsh
 chsh -s zsh
 echo -e "\n${G}────────────────────────────────────────────────────────────${N}"
 echo -e "       ${W}SUCCESS! TYPE ${C}auto-termux${W} TO RERUN ANYTIME${N}"
