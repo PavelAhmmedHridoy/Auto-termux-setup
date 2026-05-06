@@ -115,4 +115,85 @@ esac
 # ================= FINAL =================
 echo -e "\n${G}──────────────────────────────${N}"
 echo -e "${W}Setup Complete ✔ for ${C}${name}${N}"
+echo -e "${G}──────────────────────────────${N}"    exit
+}
+
+# ================= STEP 3: MODE MENU =================
+echo -e "\n${W}Select Mode:${N}"
+echo -e "${C}1) Install ALL Modules"
+echo -e "${C}2) Select Modules"
+echo -e "${C}3) Back (Restart)"
+echo -e "${C}4) Exit"
+echo -ne "\nChoice ❱ ${N}"
+read mode
+
+# ================= CORE SYSTEM =================
+system_core() {
+    echo -e "\n${Y}[SYSTEM] Updating & Installing Core Tools...${N}"
+    pkg update -y && pkg upgrade -y
+    pkg install git zsh curl nodejs python php mariadb -y
+}
+
+# ================= MODULE FUNCTIONS =================
+frontend() {
+    echo -e "\n${C}[FRONTEND] Installing Node.js tools...${N}"
+    pkg install nodejs -y
+}
+
+backend() {
+    echo -e "\n${B}[BACKEND] Installing Python + PHP stack...${N}"
+    pkg install python php mariadb -y
+}
+
+tools() {
+    echo -e "\n${G}[TOOLS] Installing utility tools...${N}"
+    pkg install git curl wget nano unzip -y
+}
+
+# ================= MODE LOGIC =================
+case $mode in
+
+    1)
+        system_core
+        frontend
+        backend
+        tools
+        ;;
+
+    2)
+        echo -e "\n${W}Select modules:${N}"
+        echo -e "${C}1) Frontend"
+        echo -e "${C}2) Backend"
+        echo -e "${C}3) Tools"
+        echo -ne "\nChoice ❱ ${N}"
+        read m
+
+        system_core
+
+        case $m in
+            1) frontend ;;
+            2) backend ;;
+            3) tools ;;
+            *) echo -e "${R}Invalid module selection${N}" ;;
+        esac
+        ;;
+
+    3)
+        echo -e "\n${Y}Restarting wizard...${N}"
+        exec bash "$0"
+        ;;
+
+    4)
+        echo -e "\n${R}Exit ${name} 👋${N}"
+        exit
+        ;;
+
+    *)
+        echo -e "\n${R}Invalid option${N}"
+        ;;
+esac
+
+# ================= FINAL =================
+echo -e "\n${G}──────────────────────────────${N}"
+echo -e "${W}Setup Complete ✔ for ${C}${name}${N}"
 echo -e "${G}──────────────────────────────${N}"
