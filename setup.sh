@@ -10,9 +10,9 @@ clear
 echo -e "${C}"
 cat << "EOF"
 ╔════════════════════════════════════════════╗
-║        ⚡ TERMUX FLOW INSTALLER ⚡         ║
+║        ⚡ TERMUX STRICT FLOW UI ⚡         ║
 ╠════════════════════════════════════════════╣
-║        CLEAN STEP WISE SYSTEM              ║
+║        CLEAN INSTALL WIZARD                ║
 ╚════════════════════════════════════════════╝
 EOF
 echo -e "${N}"
@@ -24,8 +24,8 @@ name=${name:-User}
 
 echo -e "\n${G}Welcome ${name}! 🚀${N}"
 
-# ================= STEP 2: FRONTEND / BACKEND =================
-echo -e "\n${W}Select environment:${N}"
+# ================= STEP 2: ENVIRONMENT =================
+echo -e "\n${W}Choose environment:${N}"
 echo -e "${C}1) Frontend"
 echo -e "${C}2) Backend"
 echo -ne "\nChoice ❱ ${N}"
@@ -33,8 +33,107 @@ read env
 
 # ================= ENV SETUP =================
 setup_frontend() {
-    echo -e "\n${C}[FRONTEND] Installing Node.js...${N}"
+    echo -e "\n${C}[FRONTEND] Installing Node.js environment...${N}"
     pkg install nodejs -y
+}
+
+setup_backend() {
+    echo -e "\n${B}[BACKEND] Installing Python/PHP environment...${N}"
+    pkg install python php mariadb -y
+}
+
+case $env in
+    1) setup_frontend ;;
+    2) setup_backend ;;
+    *) echo -e "${R}Invalid environment${N}"; exit ;;
+esac
+
+# ================= STEP 3: MODULE ASK =================
+echo -e "\n${W}Do you want modules?${N}"
+echo -e "${C}1) Yes"
+echo -e "${C}2) No (Exit)"
+echo -ne "\nChoice ❱ ${N}"
+read want
+
+[[ "$want" != "1" ]] && {
+    echo -e "\n${Y}Done ${name} 👋${N}"
+    exit
+}
+
+# ================= STEP 4: MODULE MENU =================
+echo -e "\n${W}Module Options:${N}"
+echo -e "${C}1) Install ALL modules"
+echo -e "${C}2) Select modules"
+echo -e "${C}3) Back"
+echo -e "${C}4) Exit"
+echo -ne "\nChoice ❱ ${N}"
+read mode
+
+# ================= CORE SYSTEM =================
+core_system() {
+    echo -e "\n${Y}[SYSTEM] Updating system...${N}"
+    pkg update -y && pkg upgrade -y
+    pkg install git curl zsh wget nano unzip -y
+}
+
+# ================= MODULES (ONLY MODULES HERE) =================
+module_frontend() {
+    pkg install nodejs -y
+}
+
+module_backend() {
+    pkg install python php mariadb -y
+}
+
+module_tools() {
+    pkg install git curl wget nano -y
+}
+
+# ================= MODULE EXECUTION =================
+case $mode in
+
+    1)
+        core_system
+        module_frontend
+        module_backend
+        module_tools
+        ;;
+
+    2)
+        echo -e "\n${W}Select module:${N}"
+        echo -e "${C}1) Frontend module"
+        echo -e "${C}2) Backend module"
+        echo -e "${C}3) Tools module"
+        echo -ne "\nChoice ❱ ${N}"
+        read m
+
+        core_system
+
+        case $m in
+            1) module_frontend ;;
+            2) module_backend ;;
+            3) module_tools ;;
+            *) echo -e "${R}Invalid module${N}" ;;
+        esac
+        ;;
+
+    3)
+        echo -e "${Y}Restarting...${N}"
+        exec bash "$0"
+        ;;
+
+    4)
+        echo -e "${R}Exit ${name} 👋${N}"
+        exit
+        ;;
+
+    *)
+        echo -e "${R}Invalid option${N}"
+        ;;
+esac
+
+# ================= FINAL =================
+echo -e "\n${G}✔ Setup completed for ${name}${N}"    pkg install nodejs -y
 }
 
 setup_backend() {
