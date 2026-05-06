@@ -1,39 +1,119 @@
 #!/data/data/com.termux/files/usr/bin/bash
 
 # ==============================================================================
-# 1. THE COLOR PALETTE & ASSETS
+# 1. THE COLOR PALETTE
 # ==============================================================================
 R='\033[1;31m'; G='\033[1;32m'; Y='\033[1;33m'; B='\033[1;34m'
 P='\033[1;35m'; C='\033[1;36m'; W='\033[1;37m'; N='\033[0m'
 BG_B='\033[44m'; U='\033[4m'
 
 # ==============================================================================
-# 2. CORE UI COMPONENTS
+# 2. INTERNAL MODULES (LOGIC ONLY)
 # ==============================================================================
-draw_banner() {
-    clear
-    echo -e "${C}────────────────────────────────────────────────────────────${N}"
-    echo -e "${P}  ____  _______     __   ____ _____  _  _____ _   _ ____  ${N}"
-    echo -e "${P} |  _ \| ____\ \   / /  / ___|_   _|/ \|_   _| | | / ___| ${N}"
-    echo -e "${P} | | | |  _|  \ \ / /___\___ \ | | / _ \ | | | | | \___ \ ${N}"
-    echo -e "${P} | |_| | |___  \ V /_____|__) || |/ ___ \| | | |_| |___) |${N}"
-    echo -e "${P} |____/|_____|  \_/     |____/ |_/_/   \_\_|  \___/|____/ ${N}"
-    echo -e "${C}────────────────────────────────────────────────────────────${N}"
-    echo -e "       ${BG_B}${W}  AUTO-REPAIR  ${N} ❱❱❱ ${BG_B}${W}  COMMAND: auto-termux  ${N}"
-    echo -e "${C}────────────────────────────────────────────────────────────${N}"
+install_frontend() {
+    echo -e "\n${P}⚡ STARTING FRONTEND SETUP...${N}"
+    pkg install nodejs -y
+    echo -e "${C}Install global tools (live-server, prettier)? [y/n]${N}"
+    read -p "❱ " npm_choice
+    [[ "$npm_choice" =~ ^[Yy]$ ]] && npm install -g live-server prettier
+}
+
+install_backend() {
+    echo -e "\n${B}⚙ STARTING BACKEND SETUP...${N}"
+    pkg install python python-pip mariadb -y
 }
 
 # ==============================================================================
-# 3. SYSTEM REPAIR & INSTALLATION LOGIC
+# 3. MAIN EXECUTION FLOW
 # ==============================================================================
-system_repair() {
-    echo -e "\n${Y}[!] Phase 1: Heavy System Repair & Package Sync...${N}"
-    # Structured one-line repair chain
-    apt update -y && apt full-upgrade -y && pkg install zsh git eza curl ncurses-utils -y --reinstall || {
-        echo -e "${R}!! Critical Library Mismatch Detected !!${N}"
-        dpkg --configure -a && apt install -f -y && apt full-upgrade -y
-    }
+
+# --- [A] BANNER & NICKNAME ---
+clear
+echo -e "${C}────────────────────────────────────────────────────────────${N}"
+echo -e "${P}  ____  _______     __   ____ _____  _  _____ _   _ ____  ${N}"
+echo -e "${P} |  _ \| ____\ \   / /  / ___|_   _|/ \|_   _| | | / ___| ${N}"
+echo -e "${P} | | | |  _|  \ \ / /___\___ \ | | / _ \ | | | | | \___ \ ${N}"
+echo -e "${P} | |_| | |___  \ V /_____|__) || |/ ___ \| | | |_| |___) |${N}"
+echo -e "${P} |____/|_____|  \_/     |____/ |_/_/   \_\_|  \___/|____/ ${N}"
+echo -e "${C}────────────────────────────────────────────────────────────${N}"
+
+while true; do
+    echo -e -n "${W}Enter Your Nickname ${G}❱ ${N}"
+    read nickname
+    [[ -n "$nickname" ]] && break
+done
+
+echo -e "\n${U}${W}CHOOSE YOUR PATH:${N}"
+echo -e "${C}1. ${G}Frontend   ${C}2. ${B}Backend   ${C}3. ${P}Fullstack${N}"
+read -p "Select Path [1-3] ❱ " choice
+
+# --- [B] SYSTEM REPAIR (ONE-LINE CHAIN) ---
+echo -e "\n${Y}[!] Phase 1: Heavy System Repair & Package Sync...${N}"
+apt update -y && apt full-upgrade -y && pkg install zsh git eza curl ncurses-utils -y --reinstall || {
+    dpkg --configure -a && apt install -f -y && apt full-upgrade -y
 }
+
+# --- [C] ICON FONT DEPLOYMENT ---
+echo -e "${Y}[!] Phase 2: Deploying Nerd-Font Glyphs...${N}"
+mkdir -p ~/.termux
+curl -L "https://github.com/romkatv/powerlevel10k-media/raw/master/MesloLGS%20NF%20Regular.ttf" -o ~/.termux/font.ttf
+echo "font-size = 13" > ~/.termux/termux.properties && termux-reload-settings
+
+# --- [D] STACK EXECUTION ---
+case $choice in
+    1) install_frontend ;;
+    2) install_backend ;;
+    3) install_frontend && install_backend ;;
+esac
+
+# --- [E] STYLING (THE WAITING FIX) ---
+echo -e "\n${Y}[!] Phase 3: Launching Style Engine...${N}"
+if [[ ! -d "$HOME/termux-style" ]]; then
+    git clone https://github.com/adi1090x/termux-style "$HOME/termux-style"
+    cd "$HOME/termux-style" && ./install
+    
+    # CRITICAL FIX: Force terminal to stay interactive for the menu
+    echo -e "${G}>>> SELECT THEME NOW. SCRIPT WAITS FOR YOU...${N}"
+    exec < /dev/tty
+    termux-style
+    
+    cd - > /dev/null
+    rm -rf "$HOME/termux-style" # Nuclear cleanup after menu closes
+fi
+
+# --- [F] COMMAND REGISTRATION ---
+cp "$0" "$PREFIX/bin/auto-termux"
+chmod +x "$PREFIX/bin/auto-termux"
+
+# --- [G] ZSH CONFIGURATION ---
+echo -e "${Y}[!] Phase 4: Finalizing Custom Zsh...${N}"
+mkdir -p ~/.zsh_plugins
+[[ -d ~/.zsh_plugins/zsh-syntax-highlighting ]] || git clone https://github.com/zsh-users/zsh-syntax-highlighting ~/.zsh_plugins/zsh-syntax-highlighting
+[[ -d ~/.zsh_plugins/zsh-autosuggestions ]] || git clone https://github.com/zsh-users/zsh-autosuggestions ~/.zsh_plugins/zsh-autosuggestions
+
+cat << EOF > ~/.zshrc
+export TERM="xterm-256color"
+export LC_ALL=C.UTF-8
+source ~/.zsh_plugins/zsh-autosuggestions/zsh-autosuggestions.zsh
+source ~/.zsh_plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+alias ls='eza --icons=always --group-directories-first'
+alias ll='eza -lh --icons=always --group-directories-first'
+alias auto-termux='auto-termux'
+PROMPT='%B%F{51}(%F{51}${nickname}%F{51}) %F{226}➜ %F{33}%~ %F{118}$ %f%b'
+EOF
+
+# ==============================================================================
+# 4. FINAL CLEANUP & HANDOVER
+# ==============================================================================
+chsh -s zsh
+echo -e "\n${G}────────────────────────────────────────────────────────────${N}"
+echo -e "       ${W}SYSTEM READY: TYPE ${C}auto-termux${W} TO RERUN${N}"
+echo -e "       ${R}CLEANUP COMPLETE: setup.sh and source folders REMOVED${N}"
+echo -e "${G}────────────────────────────────────────────────────────────${N}"
+
+# Self-destruct original file only
+(sleep 2; rm -f "$0") & 
+exec zsh
 
 setup_icons() {
     echo -e "${Y}[!] Phase 2: Deploying Nerd-Font Glyphs...${N}"
