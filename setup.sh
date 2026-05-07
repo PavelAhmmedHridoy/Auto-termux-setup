@@ -1,111 +1,107 @@
 #!/data/data/com.termux/files/usr/bin/bash
 
-# --- DevCoreX Official Palette ---
-P='\033[0;35m'; W='\033[0;37m'; G='\033[0;32m'; N='\033[0m'
-PINK='\033[38;5;206m'; CYAN='\033[38;5;87m'; ORANGE='\033[38;5;214m'
+# 1. TITANIUM STABILITY DEFS
+RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[0;33m'
+PINK='\033[38;5;206m'; CYAN='\033[38;5;87m'; NC='\033[0m'
 
-# --- 1. THE PROGRESS ENGINE ---
-show_progress() {
-    local label=$1
-    echo -ne "${P}[⚡]${N} $label: ${G}0%${N}"
-    while read line; do
-        if [[ $line =~ ([0-9]+)% ]]; then
-            percent="${BASH_REMATCH[1]}"
-            echo -ne "\r${P}[⚡]${N} $label: ${G}${percent}%${N} "
-        fi
-    done
-    echo -e "\r${P}[⚡]${N} $label: ${G}100% - Done!${N}"
-}
+# 2. CRASH-PROOF GUARD
+set -e
+trap 'echo -e "${RED}\n[!] SCRIPT CRASHED. RUN dpkg --configure -a AND RESTART.${NC}"' ERR
 
-# --- 2. BRANDING ---
+# 3. BRANDING (SIMPLE & CLEAN)
 clear
-echo -e "${PINK}"
-echo " ██████╗ ██████╗ ██████╗ ███████╗"
-echo "██╔════╝██╔═══██╗██╔══██╗██╔════╝"
-echo "██║     ██║   ██║██████╔╝█████╗  "
-echo "██║     ██║   ██║██╔══██╗██╔══╝  "
-echo "╚██████╗╚██████╔╝██║  ██║███████╗"
-echo " ╚═════╝ ╚═════╝ ╚═╝  ╚═╝╚══════╝"
-echo -e "   ${CYAN}TERMUX MODULAR FRAMEWORK v30.0${N}"
-echo -e "      ${W}DYNAMIC SPECTRUM & GITHUB SYNC${N}\n"
+echo -e "${PINK} ██████╗ ██████╗ ██████╗ ███████╗"
+echo " ██╔════╝██╔═══██╗██╔══██╗██╔════╝"
+echo " ██║     ██║   ██║██████╔╝█████╗  "
+echo " ██║     ██║   ██║██╔══██╗██╔══╝  "
+echo " ╚██████╗╚██████╔╝██║  ██║███████╗"
+echo -e "  ╚═════╝ ╚═════╝ ╚═╝  ╚═╝╚══════╝${NC}"
+echo -e "   ${CYAN}CORE-X ABSOLUTE SPECTRUM v25.0${NC}\n"
 
-# --- 3. SYSTEM REPAIR ---
+# 4. SELF-HEALING SYSTEM
+echo -e "${YELLOW}[*] Validating System Health...${NC}"
+dpkg --configure -a || true
 pkg update -y
-pkg upgrade -y | show_progress "System Sync"
 
-# --- 4. ASSETS ---
+# 5. INSTALL CORE TOOLS
+echo -e "${YELLOW}[*] Deploying Binaries...${NC}"
+pkg install zsh eza zoxide curl git nodejs-lts ruby -y
+
+# 6. PRO-ICON FONT (JetBrains Nerd Font)
+echo -e "${YELLOW}[*] Injecting Pro-Icons...${NC}"
 mkdir -p ~/.termux
-echo -e "${P}[⚡]${N} Deploying JetBrains Mono..."
-curl -L -s -o ~/.termux/font.ttf "https://github.com/ryanoasis/nerd-fonts/raw/HEAD/patched-fonts/JetBrainsMono/Ligatures/Regular/JetBrainsMonoNerdFont-Regular.ttf"
+curl -L -o ~/.termux/font.ttf "https://github.com/ryanoasis/nerd-fonts/raw/HEAD/patched-fonts/JetBrainsMono/Ligatures/Regular/JetBrainsMonoNerdFont-Regular.ttf"
 
-echo -ne "\n${PINK}[?]${N} Nickname: "; read nickname
-[[ -z "$nickname" ]] && nickname="User"
+# 7. IDENTITY
+echo -ne "${PINK}[?] Nickname: ${NC}"; read -r nickname
+nickname=${nickname:-"User"}
 
-pkg install zsh eza zoxide curl git -y | show_progress "Core Tools"
-
-# --- 5. PLUGINS ---
-Z_DIR="$HOME/.zsh-plugins"
-mkdir -p "$Z_DIR"
-[[ -d "$Z_DIR/syntax" ]] || git clone --depth=1 "https://github.com/zsh-users/zsh-syntax-highlighting.git" "$Z_DIR/syntax" &>/dev/null
-[[ -d "$Z_DIR/suggest" ]] || git clone --depth=1 "https://github.com/zsh-users/zsh-autosuggestions.git" "$Z_DIR/suggest" &>/dev/null
-
-# --- 6. THE MASTER .ZSHRC ---
-cat << 'EOF' > ~/.zshrc
+# 8. MASTER ZSHRC GENERATION (THE SPECTRUM LOGIC)
+echo -e "${YELLOW}[*] Writing Spectrum Logic...${NC}"
+cat << EOF > ~/.zshrc
+# --- ENVIRONMENT ---
 export TERM="xterm-256color"
 export LC_ALL=C.UTF-8
 
-# --- TOTAL SPECTRUM ENGINE (FORCED RANDOM COLORS) ---
-_spectrum_engine() {
-    ZSH_HIGHLIGHT_PATTERNS=()
-    local words=(${(z)BUFFER})
-    for word in $words; do
-        # ASCII Sum Hashing
-        local -i sum=0
-        for i in {1..${#word}}; do sum+=$(( #word[$i] )); done
-        # Color math: 33 to 220 (Excludes white/grey and dark black)
-        local color=$(( (sum % 187) + 33 ))
-        ZSH_HIGHLIGHT_PATTERNS+=("$word" "fg=$color,bold")
-    done
-}
+# --- PLUGIN SETUP ---
+Z_DIR="\$HOME/.zsh-plugins"
+mkdir -p "\$Z_DIR"
 
-# Plugins
-Z_DIR="$HOME/.zsh-plugins"
-source $Z_DIR/suggest/zsh-autosuggestions.zsh
-source $Z_DIR/syntax/zsh-syntax-highlighting.zsh
+# Auto-Download Plugins if missing
+[[ -d "\$Z_DIR/syntax" ]] || git clone --depth=1 https://github.com/zsh-users/zsh-syntax-highlighting.git "\$Z_DIR/syntax"
+[[ -d "\$Z_DIR/suggest" ]] || git clone --depth=1 https://github.com/zsh-users/zsh-autosuggestions.git "\$Z_DIR/suggest"
 
-# Overrides (Strips White/Blue defaults)
-ZSH_HIGHLIGHT_HIGHLIGHTERS=(pattern)
+# Source Order is critical for Colors
+source "\$Z_DIR/syntax/zsh-syntax-highlighting.zsh"
+source "\$Z_DIR/suggest/zsh-autosuggestions.zsh"
+
+# --- THE COLOR SPECTRUM ENGINE (NO WHITE) ---
+ZSH_HIGHLIGHT_HIGHLIGHTERS=(main brackets pattern cursor)
 typeset -A ZSH_HIGHLIGHT_STYLES
-ZSH_HIGHLIGHT_STYLES[command]='none'
-ZSH_HIGHLIGHT_STYLES[builtin]='none'
-ZSH_HIGHLIGHT_STYLES[path]='none'
-ZSH_HIGHLIGHT_STYLES[unknown-token]='none'
 
-# Trigger on Keypress
-autoload -U add-zsh-hook
-add-zsh-hook precmd _spectrum_engine
-_live_color_widget() { zle .self-insert; _spectrum_engine }
-zle -N self-insert _live_color_widget
+# Commands (Cyan)
+ZSH_HIGHLIGHT_STYLES[command]='fg=87'
+ZSH_HIGHLIGHT_STYLES[builtin]='fg=87'
+ZSH_HIGHLIGHT_STYLES[alias]='fg=206'
 
-# --- CUSTOM COMMANDS ---
-# Automatic rerun from your repository
-alias auto-termux='curl -L https://raw.githubusercontent.com/PavelAhmmedHridoy/Auto-termux-setup/main/setup.sh | bash'
-alias ls='eza --icons=always --group-directories-first --grid'
+# Structural (Pink)
+ZSH_HIGHLIGHT_STYLES[commandseparator]='fg=206'
+
+# Sub-Commands (Orange/Amber 214)
+ZSH_HIGHLIGHT_PATTERNS+=('install' 'fg=214')
+ZSH_HIGHLIGHT_PATTERNS+=('update' 'fg=214')
+ZSH_HIGHLIGHT_PATTERNS+=('upgrade' 'fg=214')
+ZSH_HIGHLIGHT_PATTERNS+=('remove' 'fg=160')
+
+# Package Names / Tools (Lime 118)
+ZSH_HIGHLIGHT_PATTERNS+=('pkg' 'fg=87')
+ZSH_HIGHLIGHT_PATTERNS+=('git' 'fg=118')
+ZSH_HIGHLIGHT_PATTERNS+=('python' 'fg=118')
+ZSH_HIGHLIGHT_PATTERNS+=('node' 'fg=118')
+ZSH_HIGHLIGHT_PATTERNS+=('ruby' 'fg=118')
+
+# Options & Paths (Orange & Blue)
+ZSH_HIGHLIGHT_STYLES[single-hyphen-option]='fg=214'
+ZSH_HIGHLIGHT_STYLES[double-hyphen-option]='fg=214'
+ZSH_HIGHLIGHT_STYLES[path]='fg=33,underline'
+ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=244'
+
+# --- PRO ALIASES (EZA ICONS) ---
+alias ls='eza --icons=always --group-directories-first --grid --color=always'
+alias ll='eza --icons=always --group-directories-first -lh'
 alias cls='clear'
-EOF
 
-# Append Nickname/Prompt
-echo "PROMPT='%F{206}(%F{87}${nickname}%F{206}) %F{214}➜ %F{33}%~ %F{118}$ %f'" >> ~/.zshrc
-
-# Force black background
+# --- TERMINAL THEME ---
+mkdir -p ~/.termux
 echo "background: #000000" > ~/.termux/colors.properties
 echo "foreground: #ffffff" >> ~/.termux/colors.properties
 
-# --- 7. DEPLOY ---
-sync
+# --- PROMPT ---
+PROMPT='%F{206}(%F{87}${nickname}%F{206}) %F{214}➜ %F{33}%~ %F{118}$ %f'
+EOF
+
+# 9. FINALIZE & LAUNCH
 termux-reload-settings
+echo -e "\n${GREEN}[✔] CORE-X DEPLOYED. ENJOY THE SPECTRUM.${NC}"
 chsh -s zsh
-echo -e "\n${G}SUCCESS! CORE-X v30 DEPLOYED.${N}"
-echo -e "${W}Type ${PINK}auto-termux${W} to update/rerun.${N}"
-sleep 1
 exec zsh
