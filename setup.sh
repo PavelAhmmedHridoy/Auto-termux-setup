@@ -1,76 +1,79 @@
 #!/data/data/com.termux/files/usr/bin/bash
 
-# ==================================================
-#           DevSetup v30 — SPECTRUM AUTO
-#        No User Input - Instant Deployment
-# ==================================================
-
-set -e
-
-# --- Colors for Terminal ---
+# --- DevCoreX Official Palette ---
 P='\033[0;35m'; W='\033[0;37m'; G='\033[0;32m'; N='\033[0m'
-PINK='\033[38;5;206m'; CYAN='\033[38;5;87m'
+PINK='\033[38;5;206m'; CYAN='\033[38;5;87m'; ORANGE='\033[38;5;214m'
 
-# --- Banner ---
+# --- 1. THE PROGRESS ENGINE ---
+show_progress() {
+    local label=$1
+    echo -ne "${P}[⚡]${N} $label: ${G}0%${N}"
+    while read line; do
+        if [[ $line =~ ([0-9]+)% ]]; then
+            percent="${BASH_REMATCH[1]}"
+            echo -ne "\r${P}[⚡]${N} $label: ${G}${percent}%${N} "
+        fi
+    done
+    echo -e "\r${P}[⚡]${N} $label: ${G}100% - Done!${N}"
+}
+
+# --- 2. BRANDING ---
 clear
 echo -e "${PINK}"
-cat << "EOF"
-██████╗ ███████╗██╗   ██╗███████╗███████╗████████╗
-██╔══██╗██╔════╝██║   ██║██╔════╝██╔════╝╚══██╔══╝
-██║  ██║█████╗  ██║   ██║███████╗█████╗     ██║   
-██║  ██║██╔══╝  ╚██╗ ██╔╝╚════██║██╔══╝     ██║   
-██████╔╝███████╗ ╚████╔╝ ███████║███████╗   ██║   
-╚═════╝ ╚══════╝  ╚═══╝  ╚══════╝╚══════╝   ╚═╝   
-EOF
-echo -e "${CYAN}   DevSetup v30 — SPECTRUM EDITION (AUTO)${N}\n"
+echo " ██████╗ ██████╗ ██████╗ ███████╗"
+echo "██╔════╝██╔═══██╗██╔══██╗██╔════╝"
+echo "██║     ██║   ██║██████╔╝█████╗  "
+echo "██║     ██║   ██║██╔══██╗██╔══╝  "
+echo "╚██████╗╚██████╔╝██║  ██║███████╗"
+echo " ╚═════╝ ╚═════╝ ╚═╝  ╚═╝╚══════╝"
+echo -e "   ${CYAN}TERMUX MODULAR FRAMEWORK v30.0${N}"
+echo -e "      ${W}DYNAMIC SPECTRUM & GITHUB SYNC${N}\n"
 
-# --- System Update ---
-echo -e "${P}[⚡]${N} Syncing Repositories..."
-pkg update -y && pkg upgrade -y
+# --- 3. SYSTEM REPAIR ---
+pkg update -y
+pkg upgrade -y | show_progress "System Sync"
 
-# --- Install Packages ---
-echo -e "${P}[⚡]${N} Installing Core Tools..."
-pkg install -y zsh git curl eza zoxide
+# --- 4. ASSETS ---
+mkdir -p ~/.termux
+echo -e "${P}[⚡]${N} Deploying JetBrains Mono..."
+curl -L -s -o ~/.termux/font.ttf "https://github.com/ryanoasis/nerd-fonts/raw/HEAD/patched-fonts/JetBrainsMono/Ligatures/Regular/JetBrainsMonoNerdFont-Regular.ttf"
 
-# --- Font (JetBrains Nerd Font) ---
-mkdir -p "$HOME/.termux"
-curl -fsSL -o "$HOME/.termux/font.ttf" \
-"https://github.com/ryanoasis/nerd-fonts/raw/HEAD/patched-fonts/JetBrainsMono/Ligatures/Regular/JetBrainsMonoNerdFont-Regular.ttf"
+echo -ne "\n${PINK}[?]${N} Nickname: "; read nickname
+[[ -z "$nickname" ]] && nickname="User"
 
-# --- Default Configs ---
-nickname="DevUser"
-PLUGIN_DIR="$HOME/.zsh-plugins"
-mkdir -p "$PLUGIN_DIR"
+pkg install zsh eza zoxide curl git -y | show_progress "Core Tools"
 
-# --- Clone Plugins ---
-echo -e "${P}[⚡]${N} Injecting ZSH Plugins..."
-git clone --depth=1 https://github.com/zsh-users/zsh-syntax-highlighting.git "$PLUGIN_DIR/syntax" 2>/dev/null || true
-git clone --depth=1 https://github.com/zsh-users/zsh-autosuggestions.git "$PLUGIN_DIR/suggest" 2>/dev/null || true
+# --- 5. PLUGINS ---
+Z_DIR="$HOME/.zsh-plugins"
+mkdir -p "$Z_DIR"
+[[ -d "$Z_DIR/syntax" ]] || git clone --depth=1 "https://github.com/zsh-users/zsh-syntax-highlighting.git" "$Z_DIR/syntax" &>/dev/null
+[[ -d "$Z_DIR/suggest" ]] || git clone --depth=1 "https://github.com/zsh-users/zsh-autosuggestions.git" "$Z_DIR/suggest" &>/dev/null
 
-# --- THE MASTER SPECTRUM .ZSHRC ---
-cat > "$HOME/.zshrc" <<EOF
+# --- 6. THE MASTER .ZSHRC ---
+cat << 'EOF' > ~/.zshrc
 export TERM="xterm-256color"
 export LC_ALL=C.UTF-8
 
-# --- SPECTRUM ENGINE (DYNAMIC WORD COLORS) ---
+# --- TOTAL SPECTRUM ENGINE (FORCED RANDOM COLORS) ---
 _spectrum_engine() {
     ZSH_HIGHLIGHT_PATTERNS=()
-    local words=(\${(z)BUFFER})
-    for word in \$words; do
+    local words=(${(z)BUFFER})
+    for word in $words; do
+        # ASCII Sum Hashing
         local -i sum=0
-        # Character hashing for unique color per word
-        for i in {1..\${#word}}; do sum+=\$(( #word[\$i] )); done
-        # Color range 33-220 (No White, No Blue Defaults, No Black)
-        local color=\$(( (sum % 187) + 33 ))
-        ZSH_HIGHLIGHT_PATTERNS+=("\$word" "fg=\$color,bold")
+        for i in {1..${#word}}; do sum+=$(( #word[$i] )); done
+        # Color math: 33 to 220 (Excludes white/grey and dark black)
+        local color=$(( (sum % 187) + 33 ))
+        ZSH_HIGHLIGHT_PATTERNS+=("$word" "fg=$color,bold")
     done
 }
 
-# Load Plugins
-source "$PLUGIN_DIR/suggest/zsh-autosuggestions.zsh"
-source "$PLUGIN_DIR/syntax/zsh-syntax-highlighting.zsh"
+# Plugins
+Z_DIR="$HOME/.zsh-plugins"
+source $Z_DIR/suggest/zsh-autosuggestions.zsh
+source $Z_DIR/syntax/zsh-syntax-highlighting.zsh
 
-# Force Spectrum & Strip Defaults
+# Overrides (Strips White/Blue defaults)
 ZSH_HIGHLIGHT_HIGHLIGHTERS=(pattern)
 typeset -A ZSH_HIGHLIGHT_STYLES
 ZSH_HIGHLIGHT_STYLES[command]='none'
@@ -78,33 +81,31 @@ ZSH_HIGHLIGHT_STYLES[builtin]='none'
 ZSH_HIGHLIGHT_STYLES[path]='none'
 ZSH_HIGHLIGHT_STYLES[unknown-token]='none'
 
-# Trigger Logic
+# Trigger on Keypress
 autoload -U add-zsh-hook
 add-zsh-hook precmd _spectrum_engine
 _live_color_widget() { zle .self-insert; _spectrum_engine }
 zle -N self-insert _live_color_widget
 
-# Aliases
-alias ls='eza --icons --group-directories-first --grid'
+# --- CUSTOM COMMANDS ---
+# Automatic rerun from your repository
+alias auto-termux='curl -L https://raw.githubusercontent.com/PavelAhmmedHridoy/Auto-termux-setup/main/setup.sh | bash'
+alias ls='eza --icons=always --group-directories-first --grid'
 alias cls='clear'
-alias devsetup='curl -L https://raw.githubusercontent.com/PavelAhmmedHridoy/Auto-termux-setup/main/setup.sh | bash'
-
-# Prompt
-PROMPT='%F{206}(${nickname})%f %F{87}➜ %F{214}%~ %f$ '
 EOF
 
-# --- Theme & UI ---
-cat > "$HOME/.termux/colors.properties" <<EOF
-background=#000000
-foreground=#ffffff
-EOF
+# Append Nickname/Prompt
+echo "PROMPT='%F{206}(%F{87}${nickname}%F{206}) %F{214}➜ %F{33}%~ %F{118}$ %f'" >> ~/.zshrc
 
-# --- Finalize ---
-termux-reload-settings 2>/dev/null || true
-chsh -s zsh 2>/dev/null || true
+# Force black background
+echo "background: #000000" > ~/.termux/colors.properties
+echo "foreground: #ffffff" >> ~/.termux/colors.properties
 
-echo -e "\n${G}✔ DevSetup Spectrum Deployed Successfully!${N}"
-echo -e "${W}Type ${PINK}devsetup${W} anytime to update from GitHub.${N}"
-
+# --- 7. DEPLOY ---
 sync
+termux-reload-settings
+chsh -s zsh
+echo -e "\n${G}SUCCESS! CORE-X v30 DEPLOYED.${N}"
+echo -e "${W}Type ${PINK}auto-termux${W} to update/rerun.${N}"
+sleep 1
 exec zsh
