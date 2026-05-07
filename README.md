@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://raw.githubusercontent.com/PavelAhmmedHridoy/Auto-termux-setup/main/assets/logo.jpg" alt="DevSetup Logo" width="580">
+  <img src="https://raw.githubusercontent.com/PavelAhmmedHridoy/Auto-termux-setup/main/logo.jpg" alt="DevSetup Logo" width="580">
 </p>
 
 <p align="center">
