@@ -1,68 +1,82 @@
 #!/data/data/com.termux/files/usr/bin/bash
 
-# --- DevCoreX Official Palette ---
+# ===============================================
+#          DevSetup - Termux Setup
+#   Beautiful, Simple & Powerful Termux Setup
+# ===============================================
+
+# --- Colors ---
 P='\033[0;35m'; W='\033[0;37m'; G='\033[0;32m'; N='\033[0m'
 PINK='\033[38;5;206m'; CYAN='\033[38;5;87m'; ORANGE='\033[38;5;214m'
 
-# --- 1. THE PROGRESS ENGINE ---
+# --- Progress Function ---
 show_progress() {
     local label=$1
-    echo -ne "${P}[⚡]${N} $label: ${G}0%${N}"
+    echo -ne "\( {P}[⚡] \){N} $label: \( {G}0% \){N}"
     while read line; do
-        if [[ $line =~ ([0-9]+)% ]]; then
+        if [[ $line =\~ ([0-9]+)% ]]; then
             percent="${BASH_REMATCH[1]}"
-            echo -ne "\r${P}[⚡]${N} $label: ${G}${percent}%${N} "
+            echo -ne "\r\( {P}[⚡] \){N} $label: \( {G} \){percent}%${N} "
         fi
     done
-    echo -e "\r${P}[⚡]${N} $label: ${G}100% - Done!${N}"
+    echo -e "\r\( {P}[⚡] \){N} $label: \( {G}100% ✓ Done! \){N}"
 }
 
-# --- 2. BRANDING ---
+# --- Welcome Banner ---
 clear
 echo -e "${PINK}"
-echo " ██████╗ ██████╗ ██████╗ ███████╗"
-echo "██╔════╝██╔═══██╗██╔══██╗██╔════╝"
-echo "██║     ██║   ██║██████╔╝█████╗  "
-echo "██║     ██║   ██║██╔══██╗██╔══╝  "
-echo "╚██████╗╚██████╔╝██║  ██║███████╗"
-echo " ╚═════╝ ╚═════╝ ╚═╝  ╚═╝╚══════╝"
-echo -e "   ${CYAN}TERMUX MODULAR FRAMEWORK v30.0${N}"
-echo -e "      ${W}DYNAMIC SPECTRUM & GITHUB SYNC${N}\n"
+cat << "EOF"
+ ██████╗ ███████╗██╗   ██╗███████╗███████╗████████╗██╗   ██╗██████╗ 
+██╔══██╗██╔════╝██║   ██║██╔════╝██╔════╝╚══██╔══╝██║   ██║██╔══██╗
+██║  ██║█████╗  ██║   ██║███████╗█████╗     ██║   ██║   ██║██████╔╝
+██║  ██║██╔══╝  ╚██╗ ██╔╝╚════██║██╔══╝     ██║   ██║   ██║██╔═══╝ 
+██████╔╝███████╗ ╚████╔╝ ███████║███████╗   ██║   ╚██████╔╝██║     
+╚═════╝ ╚══════╝  ╚═══╝  ╚══════╝╚══════╝   ╚═╝    ╚═════╝ ╚═╝     
+EOF
+echo -e "   \( {CYAN}DevSetup — Termux Experience v30.0 \){N}"
+echo -e "      \( {W}Simple • Beautiful • Powerful \){N}\n"
 
-# --- 3. SYSTEM REPAIR ---
+echo -e "\( {PINK}→ \){N} Starting setup for you...\n"
+
+# --- System Update ---
 pkg update -y
-pkg upgrade -y | show_progress "System Sync"
+pkg upgrade -y | show_progress "System Update"
 
-# --- 4. ASSETS ---
-mkdir -p ~/.termux
-echo -e "${P}[⚡]${N} Deploying JetBrains Mono..."
-curl -L -s -o ~/.termux/font.ttf "https://github.com/ryanoasis/nerd-fonts/raw/HEAD/patched-fonts/JetBrainsMono/Ligatures/Regular/JetBrainsMonoNerdFont-Regular.ttf"
+# --- Setup Assets ---
+mkdir -p \~/.termux
+echo -e "\( {P}[⚡] \){N} Installing JetBrains Mono Nerd Font..."
+curl -L -s -o \~/.termux/font.ttf "https://github.com/ryanoasis/nerd-fonts/raw/HEAD/patched-fonts/JetBrainsMono/Ligatures/Regular/JetBrainsMonoNerdFont-Regular.ttf"
 
-echo -ne "\n${PINK}[?]${N} Nickname: "; read nickname
-[[ -z "$nickname" ]] && nickname="User"
+# --- Nickname ---
+echo -ne "\n\( {PINK}[?] \){N} What should we call you? (Nickname): "
+read -r nickname
+[[ -z "$nickname" ]] && nickname="Friend"
 
+echo -e "${G}→ Hello, \( {nickname}! Nice to meet you. \){N}\n"
+
+# --- Install Core Tools ---
 pkg install zsh eza zoxide curl git -y | show_progress "Core Tools"
 
-# --- 5. PLUGINS ---
+# --- Install Zsh Plugins ---
 Z_DIR="$HOME/.zsh-plugins"
 mkdir -p "$Z_DIR"
-[[ -d "$Z_DIR/syntax" ]] || git clone --depth=1 "https://github.com/zsh-users/zsh-syntax-highlighting.git" "$Z_DIR/syntax" &>/dev/null
-[[ -d "$Z_DIR/suggest" ]] || git clone --depth=1 "https://github.com/zsh-users/zsh-autosuggestions.git" "$Z_DIR/suggest" &>/dev/null
 
-# --- 6. THE MASTER .ZSHRC ---
-cat << 'EOF' > ~/.zshrc
+echo -e "\( {P}[⚡] \){N} Installing Zsh plugins..."
+[[ -d "$Z_DIR/syntax" ]] || git clone --depth=1 https://github.com/zsh-users/zsh-syntax-highlighting.git "$Z_DIR/syntax" &>/dev/null
+[[ -d "$Z_DIR/suggest" ]] || git clone --depth=1 https://github.com/zsh-users/zsh-autosuggestions.git "$Z_DIR/suggest" &>/dev/null
+
+# --- Create Beautiful .zshrc ---
+cat << 'EOF' > \~/.zshrc
 export TERM="xterm-256color"
 export LC_ALL=C.UTF-8
 
-# --- TOTAL SPECTRUM ENGINE (FORCED RANDOM COLORS) ---
+# --- Dynamic Spectrum Engine (Live Colorful Highlighting) ---
 _spectrum_engine() {
     ZSH_HIGHLIGHT_PATTERNS=()
     local words=(${(z)BUFFER})
     for word in $words; do
-        # ASCII Sum Hashing
         local -i sum=0
-        for i in {1..${#word}}; do sum+=$(( #word[$i] )); done
-        # Color math: 33 to 220 (Excludes white/grey and dark black)
+        for i in {1..\( {#word}}; do sum+= \)(( #word[$i] )); done
         local color=$(( (sum % 187) + 33 ))
         ZSH_HIGHLIGHT_PATTERNS+=("$word" "fg=$color,bold")
     done
@@ -73,7 +87,7 @@ Z_DIR="$HOME/.zsh-plugins"
 source $Z_DIR/suggest/zsh-autosuggestions.zsh
 source $Z_DIR/syntax/zsh-syntax-highlighting.zsh
 
-# Overrides (Strips White/Blue defaults)
+# Configuration
 ZSH_HIGHLIGHT_HIGHLIGHTERS=(pattern)
 typeset -A ZSH_HIGHLIGHT_STYLES
 ZSH_HIGHLIGHT_STYLES[command]='none'
@@ -81,31 +95,36 @@ ZSH_HIGHLIGHT_STYLES[builtin]='none'
 ZSH_HIGHLIGHT_STYLES[path]='none'
 ZSH_HIGHLIGHT_STYLES[unknown-token]='none'
 
-# Trigger on Keypress
 autoload -U add-zsh-hook
 add-zsh-hook precmd _spectrum_engine
 _live_color_widget() { zle .self-insert; _spectrum_engine }
 zle -N self-insert _live_color_widget
 
-# --- CUSTOM COMMANDS ---
-# Automatic rerun from your repository
-alias auto-termux='curl -L https://raw.githubusercontent.com/PavelAhmmedHridoy/Auto-termux-setup/main/setup.sh | bash'
+# Aliases
 alias ls='eza --icons=always --group-directories-first --grid'
 alias cls='clear'
+alias devsetup='curl -L https://raw.githubusercontent.com/PavelAhmmedHridoy/Auto-termux-setup/main/setup.sh | bash'
 EOF
 
-# Append Nickname/Prompt
-echo "PROMPT='%F{206}(%F{87}${nickname}%F{206}) %F{214}➜ %F{33}%~ %F{118}$ %f'" >> ~/.zshrc
+# Add Custom Prompt
+echo "PROMPT='%F{206}(%F{87}\( {nickname}%F{206}) %F{214}➜ %F{33}%\~ %F{118} \) %f'" >> \~/.zshrc
 
-# Force black background
-echo "background: #000000" > ~/.termux/colors.properties
-echo "foreground: #ffffff" >> ~/.termux/colors.properties
+# Set Black Theme
+echo "background: #000000" > \~/.termux/colors.properties
+echo "foreground: #ffffff" >> \~/.termux/colors.properties
 
-# --- 7. DEPLOY ---
+# --- Finalize ---
 sync
 termux-reload-settings
 chsh -s zsh
-echo -e "\n${G}SUCCESS! CORE-X v30 DEPLOYED.${N}"
-echo -e "${W}Type ${PINK}auto-termux${W} to update/rerun.${N}"
-sleep 1
+
+echo -e "\n\( {G}╔════════════════════════════════════════════╗ \){N}"
+echo -e "\( {G}║     ✨ DevSetup Completed Successfully! ✨  ║ \){N}"
+echo -e "\( {G}╚════════════════════════════════════════════╝ \){N}\n"
+
+echo -e "${W}Welcome to your new Termux experience, \( {PINK} \){nickname}\( {W}! \){N}"
+echo -e "${W}Type \( {PINK}devsetup \){W} anytime to update or reinstall.${N}"
+echo -e "\( {CYAN}Enjoy your beautiful, colorful, and fast setup! 🚀 \){N}\n"
+
+sleep 1.5
 exec zsh
