@@ -5,7 +5,7 @@
 <h1 align="center">⚡ DevSetup — Make Termux Feel Modern</h1>
 
 <p align="center">
-  Simple setup script for turning normal Termux into a clean and modern developer environment.
+  A simple setup script that transforms Termux into a clean, fast, and modern developer environment.
 </p>
 
 <p align="center">
@@ -27,42 +27,40 @@
 # ✨ Features
 
 - 🌈 **Dynamic Spectrum Engine**  
-  Live colorful syntax highlighting where every word gets a unique color while typing.
+  Every word you type gets live colorful highlighting.
 
 - 🔤 **JetBrains Mono Nerd Font**  
-  Clean developer font with icon support and ligatures.
+  Clean, modern font with developer icons and ligatures.
 
-- ⚡ **Beautiful Neon Prompt**  
-  Stylish prompt with your custom nickname.
+- ⚡ **Neon Terminal Prompt**  
+  Personalized prompt with your custom nickname.
 
-- 🛠️ **Modern Developer Tools**
-  - `eza`
-  - `zoxide`
+- 🛠️ **Modern Tools**
+  - `eza` (better ls)
+  - `zoxide` (smart navigation)
   - `zsh`
-  - git
-  - curl
+  - `git`
+  - `curl`
 
-- 🎨 **Modern UI**
-  - Black theme
+- 🎨 **Clean UI Theme**
+  - Black aesthetic
   - Neon accents
   - Smooth terminal experience
 
-- 🔄 **Easy Updates**
-  Update or reinstall anytime using:
-  
-```bash
-devsetup
-```
+- 🔄 **Easy Update System**
+  ```bash
+  devsetup
+  ```
 
 ---
 
 # ⚠️ Important Notes
 
-> If the installation stops or crashes, simply run the command again.
+> If installation stops or fails, just run the command again.
 
-> First installation may take a few minutes depending on internet speed.
+> First setup may take a few minutes depending on your internet speed.
 
-> Everything is designed to reinstall safely without breaking your setup.
+> Everything is designed to safely reinstall without breaking your system.
 
 ---
 
@@ -84,51 +82,49 @@ curl -L https://raw.githubusercontent.com/PavelAhmmedHridoy/Auto-termux-setup/ma
 
 # 🖥️ After Installation
 
-Your terminal prompt will look something like this:
+Your terminal will look like:
 
 ```bash
 (YourName) ➜ ~ $
 ```
 
-You’ll also get:
-- colorful typing effects
-- better file listing
-- icon support
+You’ll get:
+- colorful typing effect
+- improved file listing
+- icons support
 - cleaner shell experience
 
 ---
 
 # 📦 Included Packages
 
-| Category | Included |
-|----------|----------|
+| Category | Tools |
+|----------|------|
 | Shell | ZSH |
 | Font | JetBrains Mono Nerd Font |
-| Plugins | zsh-autosuggestions, zsh-syntax-highlighting |
-| Tools | eza, zoxide, git, curl |
+| Plugins | autosuggestions, syntax-highlighting |
+| Utilities | eza, zoxide, git, curl |
 
 ---
 
 # 🧩 Useful Commands
 
-| Command | Description |
-|---------|-------------|
-| `devsetup` | Reinstall or update setup |
-| `ls` | Better file listing |
-| `cls` | Clear screen |
+| Command | Function |
+|----------|----------|
+| `devsetup` | Update / reinstall setup |
+| `ls` | Modern file listing |
+| `cls` | Clear terminal |
 
 ---
 
 # 🎛️ Customization
 
 ### Change nickname
-
 ```bash
 devsetup
 ```
 
 ### Edit shell config
-
 ```bash
 nano ~/.zshrc
 ```
@@ -137,16 +133,15 @@ nano ~/.zshrc
 
 # ❤️ About This Project
 
-This project originally started as my personal Termux setup.
+This started as my personal Termux setup.  
+I kept improving it until it became something clean and usable for everyone.
 
-After rebuilding and improving it many times, I decided to make it easier for other people to use too.
-
-If you enjoy the project, consider giving it a ⭐
+If you like it, drop a ⭐ on the repo.
 
 ---
 
 # 📂 Repository
 
-```bash
+```
 PavelAhmmedHridoy/Auto-termux-setup
 ```
