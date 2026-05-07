@@ -1,7 +1,7 @@
 #!/data/data/com.termux/files/usr/bin/bash
 
 # ==========================================
-# CORE-X ABSOLUTE SPECTRUM v25.3 - FULL FIX
+# CORE-X ABSOLUTE SPECTRUM v25.3 - COLOR FIX
 # ==========================================
 
 # ---------- COLORS ----------
@@ -27,8 +27,7 @@ echo " ╚██████╗╚██████╔╝██║  ██║�
 echo -e "  ╚═════╝ ╚═════╝ ╚═╝  ╚═╝╚══════╝${NC}"
 echo -e "   ${CYAN}CORE-X ABSOLUTE SPECTRUM v25.3${NC}\n"
 
-# ---------- USER INPUT (FIXED) ----------
-# < /dev/tty ensures the script stops and waits for you
+# ---------- USER INPUT ----------
 echo -ne "${PINK}[?] Nickname: ${NC}"
 read -r nickname < /dev/tty
 nickname=${nickname:-User}
@@ -63,35 +62,38 @@ mkdir -p "\$Z_DIR"
 [[ -d "\$Z_DIR/syntax" ]] || git clone --depth=1 https://github.com/zsh-users/zsh-syntax-highlighting.git "\$Z_DIR/syntax"
 [[ -d "\$Z_DIR/suggest" ]] || git clone --depth=1 https://github.com/zsh-users/zsh-autosuggestions.git "\$Z_DIR/suggest"
 
-source "\$Z_DIR/syntax/zsh-syntax-highlighting.zsh"
+# Load plugins FIRST
 source "\$Z_DIR/suggest/zsh-autosuggestions.zsh"
+source "\$Z_DIR/syntax/zsh-syntax-highlighting.zsh"
 
 # ---------- INITIALIZE TOOLS ----------
 eval "\$(zoxide init zsh)"
 
-# ---------- SPECTRUM COLOR ENGINE ----------
-typeset -A ZSH_HIGHLIGHT_STYLES
+# ---------- SPECTRUM COLOR ENGINE (FIXED) ----------
+# These MUST come after sourcing the syntax plugin
 ZSH_HIGHLIGHT_HIGHLIGHTERS=(main brackets pattern cursor)
 
-# General UI Colors
+# Main command colors
 ZSH_HIGHLIGHT_STYLES[command]='fg=87,bold'
-ZSH_HIGHLIGHT_STYLES[builtin]='fg=87'
-ZSH_HIGHLIGHT_STYLES[alias]='fg=206'
-ZSH_HIGHLIGHT_STYLES[commandseparator]='fg=206'
+ZSH_HIGHLIGHT_STYLES[builtin]='fg=87,bold'
+ZSH_HIGHLIGHT_STYLES[alias]='fg=206,bold'
+ZSH_HIGHLIGHT_STYLES[function]='fg=87,bold'
+ZSH_HIGHLIGHT_STYLES[commandseparator]='fg=214'
+ZSH_HIGHLIGHT_STYLES[path]='fg=33,underline'
 ZSH_HIGHLIGHT_STYLES[single-hyphen-option]='fg=214'
 ZSH_HIGHLIGHT_STYLES[double-hyphen-option]='fg=214'
-ZSH_HIGHLIGHT_STYLES[path]='fg=33,underline'
-ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=244'
+ZSH_HIGHLIGHT_STYLES[argument]='fg=118'
 
-# Keyword Specific Highlighting
-ZSH_HIGHLIGHT_PATTERNS+=('install' 'fg=214,bold')
-ZSH_HIGHLIGHT_PATTERNS+=('update' 'fg=214')
-ZSH_HIGHLIGHT_PATTERNS+=('upgrade' 'fg=214')
-ZSH_HIGHLIGHT_PATTERNS+=('remove' 'fg=160,bold')
-ZSH_HIGHLIGHT_PATTERNS+=('pkg' 'fg=87,bold')
-ZSH_HIGHLIGHT_PATTERNS+=('git' 'fg=118,bold')
-ZSH_HIGHLIGHT_PATTERNS+=('node' 'fg=118,bold')
-ZSH_HIGHLIGHT_PATTERNS+=('python' 'fg=118,bold')
+# Error color (Red if command is wrong)
+ZSH_HIGHLIGHT_STYLES[unknown-token]='fg=160,bold'
+
+# Custom Keyword Patterns
+ZSH_HIGHLIGHT_PATTERNS+=('pkg *' 'fg=87,bold')
+ZSH_HIGHLIGHT_PATTERNS+=('git *' 'fg=118,bold')
+ZSH_HIGHLIGHT_PATTERNS+=('rm -rf *' 'fg=white,bold,bg=160')
+
+# Autosuggestion color
+ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=244'
 
 # ---------- ALIASES ----------
 alias ls='eza --icons=always --group-directories-first --grid --color=always'
@@ -108,7 +110,6 @@ echo "background: #000000" > ~/.termux/colors.properties
 echo "foreground: #ffffff" >> ~/.termux/colors.properties
 
 # ---------- PROMPT ----------
-# Format: (Nickname) ➜ current_dir $ 
 PROMPT='%F{206}(%F{87}${nickname}%F{206}) %F{214}➜ %F{33}%~ %F{118}$ %f'
 EOF
 
@@ -116,7 +117,7 @@ EOF
 termux-reload-settings || true
 chsh -s zsh || true
 
-echo -e "\n${GREEN}[✔] CORE-X DEPLOYED SUCCESSFULLY${NC}"
-echo -e "${CYAN}[*] Restarting into ZSH...${NC}"
+echo -e "\n${GREEN}[✔] CORE-X DEPLOYED WITH FULL SPECTRUM COLORS${NC}"
+echo -e "${CYAN}[*] Type a command like 'ls' or 'pkg' to see the glow!${NC}"
 
 exec zsh
