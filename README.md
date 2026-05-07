@@ -1,21 +1,130 @@
 <p align="center">
-<img src="https://raw.githubusercontent.com/PavelAhmmedHridoy/Auto-termux-setup/main/logo.jpg" alt="DevSetup Logo" width="580">
+  <img src="https://raw.githubusercontent.com/PavelAhmmedHridoy/Auto-termux-setup/main/logo.jpg" width="180" alt="DevSetup Logo">
 </p>
-<p align="center">
-<strong>DevSetup — Beautiful & Powerful Termux Setup</strong>
 
-<em>One command. Instant beauty. Lifetime productivity.</em>
-</p>
+<h1 align="center">⚡ DevSetup</h1>
+
 <p align="center">
-<a href="https://github.com/PavelAhmmedHridoy/Auto-termux-setup">
-<img src="https://img.shields.io/badge/Version-v30.0-9F4BFF?style=for-the-badge" alt="Version">
-</a>
-<a href="https://github.com/PavelAhmmedHridoy/Auto-termux-setup/blob/main/LICENSE">
-<img src="https://img.shields.io/badge/License-MIT-9F4BFF?style=for-the-badge" alt="License">
-</a>
-<a href="https://termux.dev/">
-<img src="https://img.shields.io/badge/Platform-Termux%20%7C%20Android-00FFAA?style=for-the-badge&logo=android" alt="Platform">
-</a>
+  Simple setup script for making Termux cleaner, prettier, and more comfortable for daily use.
+</p>
+
+---
+
+## ✨ Why I Made This
+
+I use Termux a lot for coding and testing stuff on my phone, but the default setup always felt too plain and boring.
+
+So I started customizing my own terminal little by little:
+- better colors
+- cleaner prompt
+- modern tools
+- smoother shell experience
+
+After rebuilding it many times, I decided to turn everything into one simple installer that anyone can use easily.
+
+---
+
+## 🚀 What It Includes
+
+- ZSH setup
+- Colorful syntax highlighting
+- JetBrains Mono Nerd Font
+- Neon-style prompt
+- Better `ls` command with icons
+- Smart terminal plugins
+- Cleaner developer environment
+
+---
+
+## 📦 Installed Packages
+
+- `zsh`
+- `eza`
+- `zoxide`
+- `git`
+- `curl`
+- `zsh-autosuggestions`
+- `zsh-syntax-highlighting`
+
+---
+
+## ⚠️ Important Notes
+
+> First installation can take a few minutes.
+
+> If something stops during installation, just run the command again.
+
+> Everything is designed to reinstall safely.
+
+---
+
+# 🛠️ Installation
+
+## Step 1 — Update Termux
+
+```bash
+pkg update -y && pkg upgrade -y
+```
+
+## Step 2 — Run Installer
+
+```bash
+curl -L https://raw.githubusercontent.com/PavelAhmmedHridoy/Auto-termux-setup/main/setup.sh | bash
+```
+
+---
+
+# 🖥️ After Installation
+
+Your terminal will look something like this:
+
+```bash
+(YourName) ➜ ~ $
+```
+
+And typing commands will feel much more colorful and modern.
+
+---
+
+# 🧩 Useful Commands
+
+| Command | Description |
+|---------|-------------|
+| `devsetup` | Reinstall or update setup |
+| `ls` | Better file listing |
+| `cls` | Clear screen |
+
+---
+
+# 🎛️ Customization
+
+### Change nickname
+
+```bash
+devsetup
+```
+
+### Edit shell config
+
+```bash
+nano ~/.zshrc
+```
+
+---
+
+# ❤️ Final Note
+
+This project started as my personal setup, but maybe it can make someone else's Termux experience better too.
+
+If you like it, consider giving the repository a ⭐
+
+---
+
+# 📂 Repository
+
+```bash
+PavelAhmmedHridoy/Auto-termux-setup
+```</a>
 </p>
 <p align="center">
 <a href="https://github.com/PavelAhmmedHridoy/Auto-termux-setup/stargazers">
