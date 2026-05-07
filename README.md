@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://raw.githubusercontent.com/PavelAhmmedHridoy/Auto-termux-setup/main/logo.png" width="180" alt="DevSetup Logo">
+  <img src="https://raw.githubusercontent.com/PavelAhmmedHridoy/Auto-termux-setup/main/logo.jpg" width="180" alt="DevSetup Logo">
 </p>
 
 <h1 align="center">⚡ DevSetup — Make Termux Feel Modern</h1>
