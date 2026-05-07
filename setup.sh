@@ -1,11 +1,11 @@
 #!/data/data/com.termux/files/usr/bin/bash
 
 # ==============================
-# CORE-X ABSOLUTE SPECTRUM v25.1
-# Stable Edition
+# CORE-X ABSOLUTE SPECTRUM v25.2
+# Crash-Proof Edition
 # ==============================
 
-# --- COLORS ---
+# ---------- COLORS ----------
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[0;33m'
@@ -13,50 +13,67 @@ PINK='\033[38;5;206m'
 CYAN='\033[38;5;87m'
 NC='\033[0m'
 
-# --- SAFETY ---
+# ---------- SAFETY ----------
 set -e
-trap 'echo -e "${RED}\n[!] SCRIPT CRASHED. RUN: dpkg --configure -a && pkg upgrade -y${NC}"' ERR
+trap 'echo -e "${RED}\n[!] SCRIPT CRASHED.\nRun:\nDEBIAN_FRONTEND=noninteractive apt --fix-broken install -y -o Dpkg::Options::=\"--force-confold\"\ndpkg --configure -a${NC}"' ERR
 
 clear
 
-# --- BANNER ---
+# ---------- BANNER ----------
 echo -e "${PINK} ██████╗ ██████╗ ██████╗ ███████╗"
 echo " ██╔════╝██╔═══██╗██╔══██╗██╔════╝"
 echo " ██║     ██║   ██║██████╔╝█████╗"
 echo " ██║     ██║   ██║██╔══██╗██╔══╝"
 echo " ╚██████╗╚██████╔╝██║  ██║███████╗"
 echo -e "  ╚═════╝ ╚═════╝ ╚═╝  ╚═╝╚══════╝${NC}"
-echo -e "   ${CYAN}CORE-X ABSOLUTE SPECTRUM v25.1${NC}\n"
+echo -e "   ${CYAN}CORE-X ABSOLUTE SPECTRUM v25.2${NC}\n"
 
-# --- SYSTEM HEALTH CHECK ---
+# ---------- SELF HEAL ----------
 echo -e "${YELLOW}[*] Validating System Health...${NC}"
+
+DEBIAN_FRONTEND=noninteractive \
+apt --fix-broken install -y \
+-o Dpkg::Options::="--force-confold" || true
+
 dpkg --configure -a || true
 
-# Set repo manually only if needed
-if ! grep -q "deb" "$PREFIX/etc/apt/sources.list"; then
+# ---------- REPO CHECK ----------
+if ! grep -q "^deb" "$PREFIX/etc/apt/sources.list" 2>/dev/null; then
     echo -e "${YELLOW}[*] Configuring mirrors...${NC}"
     yes | termux-change-repo
 fi
 
+# ---------- UPDATE SYSTEM ----------
+echo -e "${YELLOW}[*] Updating Packages...${NC}"
+
 pkg update -y
-pkg upgrade -y
 
-# --- INSTALL CORE TOOLS ---
+DEBIAN_FRONTEND=noninteractive \
+apt upgrade -y \
+-o Dpkg::Options::="--force-confold"
+
+# ---------- INSTALL TOOLS ----------
 echo -e "${YELLOW}[*] Deploying Binaries...${NC}"
-pkg install -y \
-    zsh \
-    eza \
-    zoxide \
-    git \
-    nodejs-lts \
-    ruby
 
-# Install curl only if missing
+DEBIAN_FRONTEND=noninteractive \
+apt install -y \
+-o Dpkg::Options::="--force-confold" \
+zsh \
+eza \
+zoxide \
+git \
+nodejs-lts \
+ruby
+
+# install curl only if missing
 if ! command -v curl >/dev/null 2>&1; then
-    pkg install curl -y
+    DEBIAN_FRONTEND=noninteractive \
+    apt install -y \
+    -o Dpkg::Options::="--force-confold" \
+    curl
 fi
 
-# --- FONT SETUP ---
+# ---------- FONT ----------
 echo -e "${YELLOW}[*] Injecting Pro-Icons...${NC}"
 mkdir -p ~/.termux
 
@@ -64,23 +81,19 @@ curl -L \
 -o ~/.termux/font.ttf \
 "https://github.com/ryanoasis/nerd-fonts/raw/HEAD/patched-fonts/JetBrainsMono/Ligatures/Regular/JetBrainsMonoNerdFont-Regular.ttf"
 
-# --- USER INPUT ---
+# ---------- USER ----------
 echo -ne "${PINK}[?] Nickname: ${NC}"
 read -r nickname
 nickname=${nickname:-User}
 
-# --- ZSH CONFIG ---
+# ---------- ZSH CONFIG ----------
 echo -e "${YELLOW}[*] Writing Spectrum Logic...${NC}"
 
 cat > ~/.zshrc <<EOF
-# ==============================
-# CORE-X ZSH CONFIG
-# ==============================
-
 export TERM="xterm-256color"
 export LC_ALL=C.UTF-8
 
-# --- PLUGINS ---
+# ---------- PLUGINS ----------
 Z_DIR="\$HOME/.zsh-plugins"
 mkdir -p "\$Z_DIR"
 
@@ -90,7 +103,7 @@ mkdir -p "\$Z_DIR"
 source "\$Z_DIR/syntax/zsh-syntax-highlighting.zsh"
 source "\$Z_DIR/suggest/zsh-autosuggestions.zsh"
 
-# --- COLORS ---
+# ---------- COLOR ENGINE ----------
 ZSH_HIGHLIGHT_HIGHLIGHTERS=(main brackets pattern cursor)
 typeset -A ZSH_HIGHLIGHT_STYLES
 
@@ -116,28 +129,26 @@ ZSH_HIGHLIGHT_PATTERNS+=('python' 'fg=118')
 ZSH_HIGHLIGHT_PATTERNS+=('node' 'fg=118')
 ZSH_HIGHLIGHT_PATTERNS+=('ruby' 'fg=118')
 
-# --- ALIASES ---
+# ---------- ALIASES ----------
 alias ls='eza --icons=always --group-directories-first --grid --color=always'
 alias ll='eza --icons=always --group-directories-first -lh'
 alias la='eza -la --icons=always'
 alias cls='clear'
 
-# --- THEME ---
+# ---------- THEME ----------
 mkdir -p ~/.termux
 echo "background: #000000" > ~/.termux/colors.properties
 echo "foreground: #ffffff" >> ~/.termux/colors.properties
 
-# --- PROMPT ---
+# ---------- PROMPT ----------
 PROMPT='%F{206}(%F{87}${nickname}%F{206}) %F{214}➜ %F{33}%~ %F{118}$ %f'
 EOF
 
-# --- APPLY SETTINGS ---
+# ---------- APPLY ----------
 termux-reload-settings || true
-
-# --- DEFAULT SHELL ---
 chsh -s zsh || true
 
-echo -e "\n${GREEN}[✔] CORE-X DEPLOYED SUCCESSFULLY.${NC}"
+echo -e "\n${GREEN}[✔] CORE-X DEPLOYED SUCCESSFULLY${NC}"
 echo -e "${CYAN}[*] Restart Termux if font/icons do not apply.${NC}"
 
 exec zsh
