@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://raw.githubusercontent.com/PavelAhmmedHridoy/Auto-termux-setup/main/logo.jpg" alt="DevSetup Logo" width="580">
+  <img src="https://raw.githubusercontent.com/PavelAhmmedHridoy/Auto-termux-setup/main/assets/logo.jpg" alt="DevSetup Logo" width="580">
 </p>
 
 <p align="center">
@@ -43,5 +43,13 @@
 
 ## One-Command Installation
 
+> **⚠️ Important Notes**
+
+> <span style="color:red">**If the installation crashes or stops unexpectedly** — Don't worry! Just run the command again. It will fix everything and continue from where it left off.</span>
+
+> <span style="color:#FFD700">**This process may take some time** (especially the first time) — Please be patient. It will complete successfully.</span>
+
+First, update your packages:
+
 ```bash
-curl -L https://raw.githubusercontent.com/PavelAhmmedHridoy/Auto-termux-setup/main/setup.sh | bash
+pkg update -y && pkg upgrade -y
