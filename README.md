@@ -32,7 +32,6 @@
  * **Clean black theme** with pink/cyan/orange accents
 ## ⚠️ Important Notes Before Installation
 > <span style="color:red">**If the installation crashes or stops** — Don't worry! Just run the command again. Everything will be fixed automatically.</span>
-> 
 > <span style="color:#FFD700">**This process may take some time** (especially first run) — Please be patient. It will complete successfully.</span>
 > 
 ## Installation
