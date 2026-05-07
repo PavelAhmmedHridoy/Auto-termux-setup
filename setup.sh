@@ -1,8 +1,8 @@
 #!/data/data/com.termux/files/usr/bin/bash
 
-# ==========================================
-# CORE-X ABSOLUTE SPECTRUM v25.3 - ULTIMATE
-# ==========================================
+# ===================================================
+# CORE-X ABSOLUTE SPECTRUM v25.3 - ULTIMATE COLOR FIX
+# ===================================================
 
 # ---------- COLORS ----------
 RED='\033[0;31m'
@@ -62,41 +62,47 @@ mkdir -p "\$Z_DIR"
 [[ -d "\$Z_DIR/syntax" ]] || git clone --depth=1 https://github.com/zsh-users/zsh-syntax-highlighting.git "\$Z_DIR/syntax"
 [[ -d "\$Z_DIR/suggest" ]] || git clone --depth=1 https://github.com/zsh-users/zsh-autosuggestions.git "\$Z_DIR/suggest"
 
-# Load plugins in correct order
+# Load plugins (Order matters!)
 source "\$Z_DIR/suggest/zsh-autosuggestions.zsh"
 source "\$Z_DIR/syntax/zsh-syntax-highlighting.zsh"
 
 # ---------- INITIALIZE TOOLS ----------
 eval "\$(zoxide init zsh)"
 
-# ---------- ULTIMATE SPECTRUM ENGINE ----------
-# Enable highlighters that handle blocks and multi-line logic
+# ---------- ULTIMATE COLOR ENGINE ----------
+# Must be declared AFTER sourcing syntax plugin
 ZSH_HIGHLIGHT_HIGHLIGHTERS=(main brackets pattern cursor)
-
-# Ensure styles apply to the MAIN highlighter (handles multiple commands)
 typeset -A ZSH_HIGHLIGHT_STYLES
 
+# 1. Commands (mkdir, pkg, etc)
 ZSH_HIGHLIGHT_STYLES[command]='fg=87,bold'
 ZSH_HIGHLIGHT_STYLES[builtin]='fg=87,bold'
 ZSH_HIGHLIGHT_STYLES[alias]='fg=206,bold'
 ZSH_HIGHLIGHT_STYLES[function]='fg=87,bold'
-ZSH_HIGHLIGHT_STYLES[commandseparator]='fg=206,bold' # Colors for ; && ||
-ZSH_HIGHLIGHT_STYLES[path]='fg=33,underline'
-ZSH_HIGHLIGHT_STYLES[precommand]='fg=206,underline'
+
+# 2. Arguments (This makes 'rfg' colorful!)
+ZSH_HIGHLIGHT_STYLES[argument]='fg=118'
+ZSH_HIGHLIGHT_STYLES[argument-fast]='fg=118'
+ZSH_HIGHLIGHT_STYLES[argument-slow]='fg=118'
+
+# 3. Flags & Options (-p, --force)
 ZSH_HIGHLIGHT_STYLES[single-hyphen-option]='fg=214'
 ZSH_HIGHLIGHT_STYLES[double-hyphen-option]='fg=214'
-ZSH_HIGHLIGHT_STYLES[argument]='fg=118'
-ZSH_HIGHLIGHT_STYLES[bracket-level-1]='fg=214,bold'
-ZSH_HIGHLIGHT_STYLES[bracket-level-2]='fg=206,bold'
-ZSH_HIGHLIGHT_STYLES[bracket-level-3]='fg=87,bold'
 
-# Error feedback
+# 4. Paths & Strings
+ZSH_HIGHLIGHT_STYLES[path]='fg=33,underline'
+ZSH_HIGHLIGHT_STYLES[double-quoted-argument]='fg=226'
+ZSH_HIGHLIGHT_STYLES[single-quoted-argument]='fg=226'
+
+# 5. Logic & Separators ( ; && || )
+ZSH_HIGHLIGHT_STYLES[commandseparator]='fg=206,bold'
 ZSH_HIGHLIGHT_STYLES[unknown-token]='fg=160,bold'
 
-# Patterns that work across the whole buffer
-ZSH_HIGHLIGHT_PATTERNS+=('pkg' 'fg=87,bold')
-ZSH_HIGHLIGHT_PATTERNS+=('git' 'fg=118,bold')
-ZSH_HIGHLIGHT_PATTERNS+=('node' 'fg=118,bold')
+# 6. Brackets (Levels for nested blocks)
+ZSH_HIGHLIGHT_STYLES[bracket-level-1]='fg=214,bold'
+ZSH_HIGHLIGHT_STYLES[bracket-level-2]='fg=206,bold'
+
+ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=244'
 
 # ---------- ALIASES ----------
 alias ls='eza --icons=always --group-directories-first --grid --color=always'
@@ -107,12 +113,15 @@ alias cd='z'
 alias copy='termux-clipboard-set'
 alias paste='termux-clipboard-get'
 
-# ---------- PROMPT ----------
-# Multiline prompt is best for multiline commands
-PROMPT='%F{206}╭─(%F{87}${nickname}%F{206}) %F{33}%~
-%F{206}╰─%F{214}➜ %F{118}$ %f'
+# ---------- INTERFACE ----------
+mkdir -p ~/.termux
+echo "background: #000000" > ~/.termux/colors.properties
+echo "foreground: #ffffff" >> ~/.termux/colors.properties
 
-# Handle visual behavior for multi-line input
+# ---------- PROMPT ----------
+PROMPT='%F{206}(%F{87}${nickname}%F{206}) %F{214}➜ %F{33}%~ %F{118}$ %f'
+
+# Improve multi-line arrow key behavior
 bindkey '^[[A' up-line-or-history
 bindkey '^[[B' down-line-or-history
 EOF
@@ -121,7 +130,7 @@ EOF
 termux-reload-settings || true
 chsh -s zsh || true
 
-echo -e "\n${GREEN}[✔] CORE-X DEPLOYED WITH ULTIMATE COLOR LOGIC${NC}"
-echo -e "${CYAN}[*] Multiple commands (e.g. ls; date) now glow individually.${NC}"
+echo -e "\n${GREEN}[✔] CORE-X DEPLOYED WITH FULL SPECTRUM COLORS${NC}"
+echo -e "${CYAN}[*] Try: mkdir rfg && ls -la${NC}"
 
 exec zsh
