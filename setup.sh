@@ -2,129 +2,89 @@
 
 # ===============================================
 #          DevSetup - Termux Setup
-#   Beautiful, Simple & Powerful Termux Setup
 # ===============================================
 
+set -e
+
 # --- Colors ---
-P='\033[0;35m'; W='\033[0;37m'; G='\033[0;32m'; N='\033[0m'
-PINK='\033[38;5;206m'; CYAN='\033[38;5;87m'; ORANGE='\033[38;5;214m'
+P='\033[0;35m'
+W='\033[0;37m'
+G='\033[0;32m'
+N='\033[0m'
+PINK='\033[38;5;206m'
+CYAN='\033[38;5;87m'
 
-# --- Progress Function ---
-show_progress() {
-    local label=$1
-    echo -ne "\( {P}[⚡] \){N} $label: \( {G}0% \){N}"
-    while read line; do
-        if [[ $line =\~ ([0-9]+)% ]]; then
-            percent="${BASH_REMATCH[1]}"
-            echo -ne "\r\( {P}[⚡] \){N} $label: \( {G} \){percent}%${N} "
-        fi
-    done
-    echo -e "\r\( {P}[⚡] \){N} $label: \( {G}100% ✓ Done! \){N}"
-}
-
-# --- Welcome Banner ---
+# --- Banner ---
 clear
 echo -e "${PINK}"
 cat << "EOF"
- ██████╗ ███████╗██╗   ██╗███████╗███████╗████████╗██╗   ██╗██████╗ 
+██████╗ ███████╗██╗   ██╗███████╗███████╗████████╗██╗   ██╗██████╗ 
 ██╔══██╗██╔════╝██║   ██║██╔════╝██╔════╝╚══██╔══╝██║   ██║██╔══██╗
 ██║  ██║█████╗  ██║   ██║███████╗█████╗     ██║   ██║   ██║██████╔╝
 ██║  ██║██╔══╝  ╚██╗ ██╔╝╚════██║██╔══╝     ██║   ██║   ██║██╔═══╝ 
 ██████╔╝███████╗ ╚████╔╝ ███████║███████╗   ██║   ╚██████╔╝██║     
 ╚═════╝ ╚══════╝  ╚═══╝  ╚══════╝╚══════╝   ╚═╝    ╚═════╝ ╚═╝     
 EOF
-echo -e "   \( {CYAN}DevSetup — Termux Experience v30.0 \){N}"
-echo -e "      \( {W}Simple • Beautiful • Powerful \){N}\n"
+echo -e "${CYAN}DevSetup - Termux Modern Setup${N}\n"
 
-echo -e "\( {PINK}→ \){N} Starting setup for you...\n"
+# --- System update ---
+pkg update -y && pkg upgrade -y
 
-# --- System Update ---
-pkg update -y
-pkg upgrade -y | show_progress "System Update"
-
-# --- Setup Assets ---
-mkdir -p \~/.termux
-echo -e "\( {P}[⚡] \){N} Installing JetBrains Mono Nerd Font..."
-curl -L -s -o \~/.termux/font.ttf "https://github.com/ryanoasis/nerd-fonts/raw/HEAD/patched-fonts/JetBrainsMono/Ligatures/Regular/JetBrainsMonoNerdFont-Regular.ttf"
-
-# --- Nickname ---
-echo -ne "\n\( {PINK}[?] \){N} What should we call you? (Nickname): "
+# --- Ask nickname ---
+echo -ne "${PINK}Enter nickname: ${N}"
 read -r nickname
-[[ -z "$nickname" ]] && nickname="Friend"
+nickname=${nickname:-Friend}
 
-echo -e "${G}→ Hello, \( {nickname}! Nice to meet you. \){N}\n"
+echo -e "${G}Hello, $nickname! Setting up your environment...${N}\n"
 
-# --- Install Core Tools ---
-pkg install zsh eza zoxide curl git -y | show_progress "Core Tools"
+# --- Install packages ---
+pkg install -y zsh git curl eza zoxide
 
-# --- Install Zsh Plugins ---
-Z_DIR="$HOME/.zsh-plugins"
-mkdir -p "$Z_DIR"
+# --- Fonts ---
+mkdir -p $HOME/.termux
+curl -fsSL -o $HOME/.termux/font.ttf \
+https://github.com/ryanoasis/nerd-fonts/raw/HEAD/patched-fonts/JetBrainsMono/Ligatures/Regular/JetBrainsMonoNerdFont-Regular.ttf
 
-echo -e "\( {P}[⚡] \){N} Installing Zsh plugins..."
-[[ -d "$Z_DIR/syntax" ]] || git clone --depth=1 https://github.com/zsh-users/zsh-syntax-highlighting.git "$Z_DIR/syntax" &>/dev/null
-[[ -d "$Z_DIR/suggest" ]] || git clone --depth=1 https://github.com/zsh-users/zsh-autosuggestions.git "$Z_DIR/suggest" &>/dev/null
+# --- Plugins ---
+PLUGIN_DIR="$HOME/.zsh-plugins"
+mkdir -p "$PLUGIN_DIR"
 
-# --- Create Beautiful .zshrc ---
-cat << 'EOF' > \~/.zshrc
+git clone --depth=1 https://github.com/zsh-users/zsh-syntax-highlighting.git \
+"$PLUGIN_DIR/syntax" 2>/dev/null || true
+
+git clone --depth=1 https://github.com/zsh-users/zsh-autosuggestions.git \
+"$PLUGIN_DIR/suggest" 2>/dev/null || true
+
+# --- Zsh config ---
+cat > $HOME/.zshrc <<EOF
 export TERM="xterm-256color"
-export LC_ALL=C.UTF-8
 
-# --- Dynamic Spectrum Engine (Live Colorful Highlighting) ---
-_spectrum_engine() {
-    ZSH_HIGHLIGHT_PATTERNS=()
-    local words=(${(z)BUFFER})
-    for word in $words; do
-        local -i sum=0
-        for i in {1..\( {#word}}; do sum+= \)(( #word[$i] )); done
-        local color=$(( (sum % 187) + 33 ))
-        ZSH_HIGHLIGHT_PATTERNS+=("$word" "fg=$color,bold")
-    done
-}
+Z_DIR="\$HOME/.zsh-plugins"
 
-# Plugins
-Z_DIR="$HOME/.zsh-plugins"
-source $Z_DIR/suggest/zsh-autosuggestions.zsh
-source $Z_DIR/syntax/zsh-syntax-highlighting.zsh
-
-# Configuration
-ZSH_HIGHLIGHT_HIGHLIGHTERS=(pattern)
-typeset -A ZSH_HIGHLIGHT_STYLES
-ZSH_HIGHLIGHT_STYLES[command]='none'
-ZSH_HIGHLIGHT_STYLES[builtin]='none'
-ZSH_HIGHLIGHT_STYLES[path]='none'
-ZSH_HIGHLIGHT_STYLES[unknown-token]='none'
-
-autoload -U add-zsh-hook
-add-zsh-hook precmd _spectrum_engine
-_live_color_widget() { zle .self-insert; _spectrum_engine }
-zle -N self-insert _live_color_widget
+source \$Z_DIR/suggest/zsh-autosuggestions.zsh
+source \$Z_DIR/syntax/zsh-syntax-highlighting.zsh
 
 # Aliases
-alias ls='eza --icons=always --group-directories-first --grid'
+alias ls='eza --icons --group-directories-first'
 alias cls='clear'
 alias devsetup='curl -L https://raw.githubusercontent.com/PavelAhmmedHridoy/Auto-termux-setup/main/setup.sh | bash'
+
+# Prompt
+PROMPT='%F{206}($nickname)%f %F{87}➜ %F{214}%~ %f '
 EOF
 
-# Add Custom Prompt
-echo "PROMPT='%F{206}(%F{87}\( {nickname}%F{206}) %F{214}➜ %F{33}%\~ %F{118} \) %f'" >> \~/.zshrc
+# --- Theme ---
+mkdir -p $HOME/.termux
+cat > $HOME/.termux/colors.properties <<EOF
+background=#000000
+foreground=#ffffff
+EOF
 
-# Set Black Theme
-echo "background: #000000" > \~/.termux/colors.properties
-echo "foreground: #ffffff" >> \~/.termux/colors.properties
+# --- Enable Zsh ---
+chsh -s zsh || true
+termux-reload-settings || true
 
-# --- Finalize ---
-sync
-termux-reload-settings
-chsh -s zsh
+echo -e "\n${G}✔ Setup Completed Successfully!${N}"
+echo -e "${CYAN}Restart Termux or it will auto switch to Zsh.${N}"
 
-echo -e "\n\( {G}╔════════════════════════════════════════════╗ \){N}"
-echo -e "\( {G}║     ✨ DevSetup Completed Successfully! ✨  ║ \){N}"
-echo -e "\( {G}╚════════════════════════════════════════════╝ \){N}\n"
-
-echo -e "${W}Welcome to your new Termux experience, \( {PINK} \){nickname}\( {W}! \){N}"
-echo -e "${W}Type \( {PINK}devsetup \){W} anytime to update or reinstall.${N}"
-echo -e "\( {CYAN}Enjoy your beautiful, colorful, and fast setup! 🚀 \){N}\n"
-
-sleep 1.5
 exec zsh
