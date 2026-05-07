@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://raw.githubusercontent.com/PavelAhmmedHridoy/Auto-termux-setup/main/logo.jpg" alt="DevSetup Logo" width="580">
+  <img src="https://raw.githubusercontent.com/PavelAhmmedHridoy/Auto-termux-setup/main/assets/logo.png" alt="DevSetup Logo" width="580">
 </p>
 
 <p align="center">
@@ -33,23 +33,24 @@
 
 - **Dynamic Spectrum Engine** — Live colorful syntax highlighting (every word gets a unique color)
 - **JetBrains Mono Nerd Font** with perfect ligatures
-- **Beautiful neon prompt** with your nickname
+- **Beautiful neon prompt** with your custom nickname
 - **Modern tools**: `eza` (better `ls`), `zoxide`, `zsh`
-- **Smart progress animations** during installation
-- **One-command update** system
-- **Clean black theme** with pink/cyan accents
+- **Smart animated progress** during installation
+- **One-command update** system (`devsetup`)
+- **Clean black theme** with pink/cyan/orange accents
 
 ---
 
-## One-Command Installation
+## ⚠️ Important Notes Before Installation
 
-> **⚠️ Important Notes**
+> <span style="color:red">**If the installation crashes or stops** — Don't worry! Just run the command again. Everything will be fixed automatically.</span>
 
-> <span style="color:red">**If the installation crashes or stops unexpectedly** — Don't worry! Just run the command again. It will fix everything and continue from where it left off.</span>
+> <span style="color:#FFD700">**This process may take some time** (especially first run) — Please be patient. It will complete successfully.</span>
 
-> <span style="color:#FFD700">**This process may take some time** (especially the first time) — Please be patient. It will complete successfully.</span>
+---
 
-First, update your packages:
+## Installation
 
+### Step 1: Update Termux
 ```bash
 pkg update -y && pkg upgrade -y
