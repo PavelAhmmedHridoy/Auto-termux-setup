@@ -26,8 +26,8 @@ echo "██║     ██║   ██║██████╔╝█████
 echo "██║     ██║   ██║██╔══██╗██╔══╝  "
 echo "╚██████╗╚██████╔╝██║  ██║███████╗"
 echo " ╚═════╝ ╚═════╝ ╚═╝  ╚═╝╚══════╝"
-echo -e "   ${CYAN}TERMUX MODULAR FRAMEWORK v29.0${N}"
-echo -e "      ${W}DYNAMIC SPECTRUM & AUTO-RERUN${N}\n"
+echo -e "   ${CYAN}TERMUX MODULAR FRAMEWORK v30.0${N}"
+echo -e "      ${W}DYNAMIC SPECTRUM & GITHUB SYNC${N}\n"
 
 # --- 3. SYSTEM REPAIR ---
 pkg update -y
@@ -35,6 +35,7 @@ pkg upgrade -y | show_progress "System Sync"
 
 # --- 4. ASSETS ---
 mkdir -p ~/.termux
+echo -e "${P}[⚡]${N} Deploying JetBrains Mono..."
 curl -L -s -o ~/.termux/font.ttf "https://github.com/ryanoasis/nerd-fonts/raw/HEAD/patched-fonts/JetBrainsMono/Ligatures/Regular/JetBrainsMonoNerdFont-Regular.ttf"
 
 echo -ne "\n${PINK}[?]${N} Nickname: "; read nickname
@@ -53,14 +54,16 @@ cat << 'EOF' > ~/.zshrc
 export TERM="xterm-256color"
 export LC_ALL=C.UTF-8
 
-# --- TOTAL SPECTRUM ENGINE (NO WHITE/BLUE) ---
+# --- TOTAL SPECTRUM ENGINE (FORCED RANDOM COLORS) ---
 _spectrum_engine() {
     ZSH_HIGHLIGHT_PATTERNS=()
     local words=(${(z)BUFFER})
     for word in $words; do
+        # ASCII Sum Hashing
         local -i sum=0
         for i in {1..${#word}}; do sum+=$(( #word[$i] )); done
-        local color=$(( (sum % 190) + 33 ))
+        # Color math: 33 to 220 (Excludes white/grey and dark black)
+        local color=$(( (sum % 187) + 33 ))
         ZSH_HIGHLIGHT_PATTERNS+=("$word" "fg=$color,bold")
     done
 }
@@ -70,7 +73,7 @@ Z_DIR="$HOME/.zsh-plugins"
 source $Z_DIR/suggest/zsh-autosuggestions.zsh
 source $Z_DIR/syntax/zsh-syntax-highlighting.zsh
 
-# Overrides
+# Overrides (Strips White/Blue defaults)
 ZSH_HIGHLIGHT_HIGHLIGHTERS=(pattern)
 typeset -A ZSH_HIGHLIGHT_STYLES
 ZSH_HIGHLIGHT_STYLES[command]='none'
@@ -78,23 +81,23 @@ ZSH_HIGHLIGHT_STYLES[builtin]='none'
 ZSH_HIGHLIGHT_STYLES[path]='none'
 ZSH_HIGHLIGHT_STYLES[unknown-token]='none'
 
+# Trigger on Keypress
 autoload -U add-zsh-hook
 add-zsh-hook precmd _spectrum_engine
-
 _live_color_widget() { zle .self-insert; _spectrum_engine }
 zle -N self-insert _live_color_widget
 
 # --- CUSTOM COMMANDS ---
-# Replace 'YOUR_GITHUB_URL' with your actual raw script link
-alias auto-termux='curl -L https://raw.githubusercontent.com/username/repo/main/script.sh | bash'
+# Automatic rerun from your repository
+alias auto-termux='curl -L https://raw.githubusercontent.com/PavelAhmmedHridoy/Auto-termux-setup/main/setup.sh | bash'
 alias ls='eza --icons=always --group-directories-first --grid'
 alias cls='clear'
 EOF
 
-# Append Prompt
+# Append Nickname/Prompt
 echo "PROMPT='%F{206}(%F{87}${nickname}%F{206}) %F{214}➜ %F{33}%~ %F{118}$ %f'" >> ~/.zshrc
 
-# Terminal Styling
+# Force black background
 echo "background: #000000" > ~/.termux/colors.properties
 echo "foreground: #ffffff" >> ~/.termux/colors.properties
 
@@ -102,6 +105,7 @@ echo "foreground: #ffffff" >> ~/.termux/colors.properties
 sync
 termux-reload-settings
 chsh -s zsh
-echo -e "\n${G}SUCCESS! Type 'auto-termux' anytime to rerun this setup.${N}"
+echo -e "\n${G}SUCCESS! CORE-X v30 DEPLOYED.${N}"
+echo -e "${W}Type ${PINK}auto-termux${W} to update/rerun.${N}"
 sleep 1
 exec zsh
