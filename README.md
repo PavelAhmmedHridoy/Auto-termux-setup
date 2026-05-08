@@ -47,10 +47,6 @@
   - Neon accents
   - Smooth terminal experience
 
-- 🔄 **Easy Update System**
-  ```bash
-  auto-termux
-  ```
 
 ---
 
@@ -111,7 +107,7 @@ You’ll get:
 
 | Command | Function |
 |----------|----------|
-| `devsetup` | Update / reinstall setup |
+| `auto-termux` | Update / reinstall setup |
 | `ls` | Modern file listing |
 | `cls` | Clear terminal |
 
