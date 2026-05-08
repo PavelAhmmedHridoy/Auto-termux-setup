@@ -49,7 +49,7 @@
 
 - 🔄 **Easy Update System**
   ```bash
-  devsetup
+  auto-termux
   ```
 
 ---
