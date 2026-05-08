@@ -6,18 +6,16 @@ R='\033[1;31m'; P='\033[1;35m'; B='\033[1;34m'; N='\033[0m'
 
 # ================= ERROR HANDLER =================
 error_handler() {
-    echo -e "\n${R} [!] CRITICAL ERROR at line $1${N}"
-    echo -e "${Y} [*] Attempting automated environment fix...${N}"
-    # Force install compilers if they were missing
-    pkg install rust binutils build-essential -y
+    echo -e "\n${R} [!] ERROR at line $1${N}"
+    echo -e "${Y} [*] Fixing environment... Type 'auto-termux' to resume.${N}"
     exit 1
 }
 trap 'error_handler $LINENO' ERR
 
-# ================= MODULE INSTALLERS =================
+# ================= MODULE FUNCTIONS =================
 frontend_modules() {
     echo -e "\n${W}Available Frontend Modules:${N}"
-    echo -e "${C}1) live-server  2) prettier  3) vite  0) Install ALL${N}"
+    echo -e "${C}1) live-server  2) prettier  3) vite  0) ALL${N}"
     echo -ne "${Y}Install modules? [Choice/No] ❱ ${N}"
     read -r m_choice < /dev/tty || m_choice="No"
     case $m_choice in
@@ -31,7 +29,7 @@ frontend_modules() {
 
 backend_modules() {
     echo -e "\n${W}Available Backend Modules:${N}"
-    echo -e "${C}1) flask  2) fastapi  3) websockets  0) Install ALL${N}"
+    echo -e "${C}1) flask  2) fastapi  3) websockets  0) ALL${N}"
     echo -ne "${Y}Install modules? [Choice/No] ❱ ${N}"
     read -r m_choice < /dev/tty || m_choice="No"
     case $m_choice in
@@ -43,7 +41,7 @@ backend_modules() {
     esac
 }
 
-# ================= MAIN EXECUTION FLOW =================
+# ================= MAIN EXECUTION =================
 clear
 echo -e "${C}╔════════════════════════════════════════════╗"
 echo -e "║      💎 GHOST COMMAND FLOW SYSTEM 💎       ║"
@@ -57,37 +55,32 @@ name=${name:-User}
 # 2. PATH SELECTION
 echo -e "\n${W}SELECT YOUR SETUP PATH:${N}"
 echo -e "${G}1) Frontend Setup ${W}(NodeJS)${N}"
-echo -e "${B}2) Backend Setup  ${W}(Python + Rust Compiler)${N}"
+echo -e "${B}2) Backend Setup  ${W}(Python + Rust)${N}"
 echo -e "${P}3) Just UI Setup  ${W}(Styling Only)${N}"
 echo -ne "\nChoice [1-3] ❱ ${N}"
 read -r path_choice < /dev/tty
 
-# 3. FORCE REPAIR & COMPILER INSTALL
-echo -e "\n${Y}[!] Phase 0: Repairing & Syncing Compilers...${N}"
+# 3. CORE SYSTEM REPAIR
+echo -e "\n${Y}[!] Phase 0: Syncing Core Repositories...${N}"
 apt update -y
-# Added rust, binutils, and build-essential to prevent the Pydantic error
 apt install openssl libngtcp2 curl git zsh eza rust binutils build-essential -y --reinstall
 
 # 4. BRANCHING LOGIC
 case $path_choice in
     1)
-        echo -e "\n${Y}[!] Phase 1: Installing Frontend Core...${N}"
         pkg install nodejs -y
         frontend_modules
         ;;
     2)
-        echo -e "\n${Y}[!] Phase 1: Installing Backend Core...${N}"
         pkg install python python-pip -y
-        # Upgrade pip and setuptools to help with wheels
         pip install --upgrade pip setuptools wheel
         backend_modules
         ;;
     3)
-        echo -e "\n${P}[!] UI Mode: Proceeding to Styling...${N}"
+        echo -e "\n${P}[!] UI Mode Activated...${N}"
         ;;
     *)
-        echo -e "\n${R}Invalid choice. Exiting.${N}"
-        exit 1
+        echo -e "\n${R}Invalid choice.${N}"; exit 1
         ;;
 esac
 
@@ -101,21 +94,23 @@ termux-reload-settings
 # Install & Run termux-style
 if [[ ! -d "$HOME/termux-style" ]]; then
     git clone https://github.com/adi1090x/termux-style "$HOME/termux-style"
-    cd "$HOME/termux-style" && ./install
+    cd "$HOME/termux-style" || exit
+    ./install
     echo -e "${G}>>> SELECT THEME NOW...${N}"
     termux-style < /dev/tty
-    cd - > /dev/null
+    cd "$HOME" || exit
     rm -rf "$HOME/termux-style"
 else
     termux-style < /dev/tty
 fi
 
-# 6. REGISTER PERMANENT COMMAND
-cp "$0" "$PREFIX/bin/auto-termux"
+# 6. REGISTER PERMANENT COMMAND (GITHUB COMPATIBLE)
+# Instead of copying $0, we download the raw script directly to bin
+echo -e "${Y}[!] Phase 3: Registering Global Command...${N}"
+curl -L "https://raw.githubusercontent.com/PavelAhmmedHridoy/Auto-termux-setup/main/setup.sh" -o "$PREFIX/bin/auto-termux"
 chmod +x "$PREFIX/bin/auto-termux"
 
 # 7. SHELL CONFIG
-echo -e "${Y}[!] Phase 3: Finalizing Shell Environment...${N}"
 mkdir -p ~/.zsh_plugins
 [[ -d ~/.zsh_plugins/zsh-syntax-highlighting ]] || git clone https://github.com/zsh-users/zsh-syntax-highlighting ~/.zsh_plugins/zsh-syntax-highlighting
 [[ -d ~/.zsh_plugins/zsh-autosuggestions ]] || git clone https://github.com/zsh-users/zsh-autosuggestions ~/.zsh_plugins/zsh-autosuggestions
@@ -133,10 +128,9 @@ EOF
 # 8. CLEANUP & HANDOVER
 chsh -s zsh
 echo -e "\n${G}────────────────────────────────────────────────────────────${N}"
-echo -e "       ${W}BACKEND REPAIRED (RUST/BINUTILS ADDED)${N}"
-echo -e "       ${W}TYPE ${C}auto-termux${W} TO RERUN${N}"
-echo -e "       ${R}CLEANUP: setup.sh & folders REMOVED${N}"
+echo -e "       ${W}SYSTEM READY! TYPE ${C}auto-termux${W} TO RERUN${N}"
 echo -e "${G}────────────────────────────────────────────────────────────${N}"
 
-(sleep 2; rm -f "$0") & 
+# Final cleanup: if a local file named setup.sh exists, delete it.
+[[ -f "setup.sh" ]] && rm "setup.sh"
 exec zsh
