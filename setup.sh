@@ -7,12 +7,12 @@ R='\033[1;31m'; P='\033[1;35m'; B='\033[1;34m'; N='\033[0m'
 # ================= ERROR HANDLER =================
 error_handler() {
     echo -e "\n${R} [!] ERROR at line $1${N}"
-    echo -e "${Y} [*] Fixing environment... Type 'auto-termux' to resume.${N}"
+    echo -e "${Y} [*] Fixing environment... Type 'dev-setup' to resume.${N}"
     exit 1
 }
 trap 'error_handler $LINENO' ERR
 
-# ================= MODULE FUNCTIONS =================
+# ================= MODULE INSTALLERS =================
 frontend_modules() {
     echo -e "\n${W}Available Frontend Modules:${N}"
     echo -e "${C}1) live-server  2) prettier  3) vite  0) ALL${N}"
@@ -43,9 +43,18 @@ backend_modules() {
 
 # ================= MAIN EXECUTION =================
 clear
-echo -e "${C}╔════════════════════════════════════════════╗"
-echo -e "║      💎 GHOST COMMAND FLOW SYSTEM 💎       ║"
-echo -e "╚════════════════════════════════════════════╝${N}"
+echo -e "${P}"
+cat << "EOF"
+ ____              ____       _               
+|  _ \  _____   __/ ___|  ___| |_ _   _ _ __  
+| | | |/ _ \ \ / /\___ \ / _ \ __| | | | '_ \ 
+| |_| |  __/\ V /  ___) |  __/ |_| |_| | |_) |
+|____/ \___| \_/  |____/ \___|\__|\__,_| .__/ 
+                                       |_|    
+EOF
+echo -e "${C}  ───────────────────────────────────────────"
+echo -e "   💎 GHOST COMMAND FLOW SYSTEM 💎"
+echo -e "  ───────────────────────────────────────────${N}"
 
 # 1. NAME IDENTITY
 echo -ne "${W}Enter your name ❱ ${N}"
@@ -53,14 +62,14 @@ read -r name < /dev/tty || name="User"
 name=${name:-User}
 
 # 2. PATH SELECTION
-echo -e "\n${W}SELECT YOUR SETUP PATH:${N}"
+echo -e "\n${U}${W}SELECT YOUR SETUP PATH:${N}"
 echo -e "${G}1) Frontend Setup ${W}(NodeJS)${N}"
 echo -e "${B}2) Backend Setup  ${W}(Python + Rust)${N}"
 echo -e "${P}3) Just UI Setup  ${W}(Styling Only)${N}"
 echo -ne "\nChoice [1-3] ❱ ${N}"
 read -r path_choice < /dev/tty
 
-# 3. CORE SYSTEM REPAIR
+# 3. CORE SYSTEM REPAIR & REPO SYNC
 echo -e "\n${Y}[!] Phase 0: Syncing Core Repositories...${N}"
 apt update -y
 apt install openssl libngtcp2 curl git zsh eza rust binutils build-essential -y --reinstall
@@ -105,32 +114,48 @@ else
 fi
 
 # 6. REGISTER PERMANENT COMMAND (GITHUB COMPATIBLE)
-# Instead of copying $0, we download the raw script directly to bin
-echo -e "${Y}[!] Phase 3: Registering Global Command...${N}"
-curl -L "https://raw.githubusercontent.com/PavelAhmmedHridoy/Auto-termux-setup/main/setup.sh" -o "$PREFIX/bin/auto-termux"
-chmod +x "$PREFIX/bin/auto-termux"
+echo -e "${Y}[!] Phase 3: Registering Global Command 'dev-setup'...${N}"
+curl -L "https://raw.githubusercontent.com/PavelAhmmedHridoy/Auto-termux-setup/main/setup.sh" -o "$PREFIX/bin/dev-setup"
+chmod +x "$PREFIX/bin/dev-setup"
 
-# 7. SHELL CONFIG
+# 7. SHELL CONFIG (HISTORY PERSISTENCE)
+echo -e "${Y}[!] Phase 4: Finalizing Zsh & History Memory...${N}"
 mkdir -p ~/.zsh_plugins
 [[ -d ~/.zsh_plugins/zsh-syntax-highlighting ]] || git clone https://github.com/zsh-users/zsh-syntax-highlighting ~/.zsh_plugins/zsh-syntax-highlighting
 [[ -d ~/.zsh_plugins/zsh-autosuggestions ]] || git clone https://github.com/zsh-users/zsh-autosuggestions ~/.zsh_plugins/zsh-autosuggestions
 
 cat << EOF > ~/.zshrc
+# --- TERMINAL BASICS ---
 export TERM="xterm-256color"
 export LC_ALL=C.UTF-8
+
+# --- HISTORY CONFIG ---
+HISTFILE=~/.zsh_history
+HISTSIZE=10000
+SAVEHIST=10000
+setopt appendhistory
+setopt sharehistory
+setopt hist_ignore_dups
+setopt hist_ignore_space
+
+# --- PLUGINS ---
 source ~/.zsh_plugins/zsh-autosuggestions/zsh-autosuggestions.zsh
 source ~/.zsh_plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+
+# --- ALIASES ---
 alias ls='eza --icons=always --group-directories-first'
-alias auto-termux='auto-termux'
+alias dev-setup='dev-setup'
+
+# --- PROMPT ---
 PROMPT='%B%F{51}(%F{51}${name}%F{51}) %F{226}➜ %F{33}%~ %F{118}$ %f%b'
 EOF
 
 # 8. CLEANUP & HANDOVER
 chsh -s zsh
 echo -e "\n${G}────────────────────────────────────────────────────────────${N}"
-echo -e "       ${W}SYSTEM READY! TYPE ${C}auto-termux${W} TO RERUN${N}"
+echo -e "       ${W}SYSTEM READY! TYPE ${C}dev-setup${W} TO RERUN${N}"
+echo -e "       ${W}HISTORY & SUGGESTIONS NOW PERSISTENT.${N}"
 echo -e "${G}────────────────────────────────────────────────────────────${N}"
 
-# Final cleanup: if a local file named setup.sh exists, delete it.
 [[ -f "setup.sh" ]] && rm "setup.sh"
 exec zsh
