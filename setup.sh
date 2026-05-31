@@ -62,7 +62,7 @@ read -r name < /dev/tty || name="User"
 name=${name:-User}
 
 # 2. PATH SELECTION
-echo -e "\n${U}${W}SELECT YOUR SETUP PATH:${N}"
+echo -e "\n${C}${W}SELECT YOUR SETUP PATH:${N}"
 echo -e "${G}1) Frontend Setup ${W}(NodeJS)${N}"
 echo -e "${B}2) Backend Setup  ${W}(Python + Rust)${N}"
 echo -e "${P}3) Just UI Setup  ${W}(Styling Only)${N}"
@@ -71,8 +71,8 @@ read -r path_choice < /dev/tty
 
 # 3. CORE SYSTEM REPAIR & REPO SYNC
 echo -e "\n${Y}[!] Phase 0: Syncing Core Repositories...${N}"
-apt update -y
-apt install openssl libngtcp2 curl git zsh eza rust binutils build-essential -y --reinstall
+pkg update -y
+pkg install openssl libngtcp2 curl git zsh eza rust binutils build-essential -y
 
 # 4. BRANCHING LOGIC
 case $path_choice in
@@ -113,9 +113,10 @@ else
     termux-style < /dev/tty
 fi
 
-# 6. REGISTER PERMANENT COMMAND (GITHUB COMPATIBLE)
+# 6. REGISTER PERMANENT COMMAND
 echo -e "${Y}[!] Phase 3: Registering Global Command 'dev-setup'...${N}"
-curl -L "https://raw.githubusercontent.com/PavelAhmmedHridoy/Auto-termux-setup/main/setup.sh" -o "$PREFIX/bin/dev-setup"
+# Copies this exact running script into your binary folder
+cp "$0" "$PREFIX/bin/dev-setup" 2>/dev/null || curl -L "https://raw.githubusercontent.com/PavelAhmmedHridoy/Auto-termux-setup/main/setup.sh" -o "$PREFIX/bin/dev-setup"
 chmod +x "$PREFIX/bin/dev-setup"
 
 # 7. SHELL CONFIG (HISTORY PERSISTENCE)
@@ -144,7 +145,6 @@ source ~/.zsh_plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 
 # --- ALIASES ---
 alias ls='eza --icons=always --group-directories-first'
-alias dev-setup='dev-setup'
 
 # --- PROMPT ---
 PROMPT='%B%F{51}(%F{51}${name}%F{51}) %F{226}➜ %F{33}%~ %F{118}$ %f%b'
